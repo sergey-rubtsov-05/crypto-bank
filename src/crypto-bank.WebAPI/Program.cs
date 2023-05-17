@@ -11,13 +11,16 @@ var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-app.MapPost("/user/register", async (UserRegistrationRequest request, CryptoBankDb cryptoBankDb) =>
+app.MapPost("/user/register", async (UserRegistrationRequest request, CryptoBankDbContext cryptoBankDb) =>
 {
-    logger.LogInformation($"Registering user with email {request.Email}");
+    logger.LogInformation($"Registering user with email [{request.Email}]");
 
-    var entityEntry =
-        await cryptoBankDb.Users.AddAsync(new User { Email = request.Email, Password = request.Password });
+    var entityEntry = await cryptoBankDb.Users.AddAsync(new User(request.Email, request.Password));
+    await cryptoBankDb.SaveChangesAsync();
+
     var registeredUser = entityEntry.Entity;
+
+    logger.LogInformation($"User was registered with id [{registeredUser.Id}]");
 
     return Results.Created($"/user/{registeredUser.Id}", new UserRegistrationResponse { Id = registeredUser.Id });
 });
