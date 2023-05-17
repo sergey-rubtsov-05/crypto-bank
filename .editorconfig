@@ -1,7 +1,7 @@
+root = true
 ###############################
 # Core EditorConfig Options   #
 ###############################
-root = true
 # All files
 [*]
 indent_style = space
@@ -124,3 +124,9 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+
+# ReSharper properties
+resharper_csharp_wrap_after_declaration_lpar = true
+resharper_csharp_wrap_parameters_style = chop_if_long
+resharper_place_constructor_initializer_on_same_line = false
+resharper_trailing_comma_in_multiline_lists = true
