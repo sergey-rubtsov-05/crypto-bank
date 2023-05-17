@@ -1,4 +1,6 @@
 using crypto_bank.Domain.Validators.Base;
+using crypto_bank.WebAPI.Models.Validators.Base;
+using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +17,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
+        ProblemDetails? problemDetails = null;
         try
         {
             await next(context);
@@ -22,21 +25,38 @@ public class ExceptionHandlerMiddleware : IMiddleware
         catch (DomainModelValidationException domainModelValidationException)
         {
             _logger.LogInformation(domainModelValidationException, "Domain model validation failed");
-            var validationFailures = domainModelValidationException.Errors ?? Enumerable.Empty<ValidationFailure>();
-            var problemDetails = new ProblemDetails
-            {
-                Status = StatusCodes.Status409Conflict,
-                Title = domainModelValidationException.Message,
-                Detail = string.Join(", ",
-                    validationFailures.Select(error => error.ErrorMessage)),
-            };
-
-            context.Response.StatusCode = problemDetails.Status.Value;
-            await context.Response.WriteAsJsonAsync(problemDetails);
+            problemDetails = CreateProblemDetails(domainModelValidationException, StatusCodes.Status409Conflict);
+        }
+        catch (ApiModelValidationException apiModelValidationException)
+        {
+            _logger.LogInformation(apiModelValidationException, "Api model validation failed");
+            problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unhandled exception occured");
+            problemDetails = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError, Title = "Internal server error",
+            };
         }
+
+        if (problemDetails is null)
+            return;
+
+        context.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(problemDetails);
+    }
+
+    private static ProblemDetails CreateProblemDetails(ValidationException validationException, int httpStatusCode)
+    {
+        var validationFailures = validationException.Errors ?? Enumerable.Empty<ValidationFailure>();
+        var problemDetails = new ProblemDetails
+        {
+            Status = httpStatusCode,
+            Title = validationException.Message,
+            Detail = string.Join(", ", validationFailures.Select(error => error.ErrorMessage)),
+        };
+        return problemDetails;
     }
 }
