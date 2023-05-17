@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\crypto-bank.Database\crypto-bank.Database.csproj"/>
+    <ProjectReference Include="..\crypto-bank.Infrastructure\crypto-bank.Infrastructure.csproj"/>
   </ItemGroup>
 
 </Project>

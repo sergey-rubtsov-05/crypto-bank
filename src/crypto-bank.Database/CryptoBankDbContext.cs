@@ -1,12 +1,13 @@
 using crypto_bank.Database.Maps;
-using crypto_bank.Domain;
+using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace crypto_bank.Database;
 
 public class CryptoBankDbContext : DbContext
 {
-    public CryptoBankDbContext(DbContextOptions<CryptoBankDbContext> options) : base(options)
+    public CryptoBankDbContext(DbContextOptions<CryptoBankDbContext> options)
+        : base(options)
     {
     }
 

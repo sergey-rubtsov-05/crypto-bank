@@ -1,7 +1,7 @@
-using crypto_bank.Domain.Validators.Base;
+using crypto_bank.Domain.Models.Validators.Base;
 using FluentValidation;
 
-namespace crypto_bank.Domain.Validators;
+namespace crypto_bank.Domain.Models.Validators;
 
 public class UserValidator : DomainModelValidator<User>
 {

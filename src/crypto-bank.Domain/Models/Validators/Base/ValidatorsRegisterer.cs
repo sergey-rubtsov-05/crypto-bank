@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace crypto_bank.Domain.Validators.Base;
+namespace crypto_bank.Domain.Models.Validators.Base;
 
 public static class ValidatorsRegisterer
 {

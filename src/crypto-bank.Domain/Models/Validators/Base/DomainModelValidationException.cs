@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace crypto_bank.Domain.Validators.Base;
+namespace crypto_bank.Domain.Models.Validators.Base;
 
 public class DomainModelValidationException : ValidationException
 {

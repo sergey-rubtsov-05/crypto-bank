@@ -1,4 +1,4 @@
-using crypto_bank.Domain;
+using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace crypto_bank.Database.Maps;

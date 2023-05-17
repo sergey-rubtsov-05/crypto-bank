@@ -1,4 +1,4 @@
-using crypto_bank.Domain.Validators.Base;
+using crypto_bank.Domain.Models.Validators.Base;
 using crypto_bank.WebAPI.Models.Validators.Base;
 using FluentValidation;
 using FluentValidation.Results;

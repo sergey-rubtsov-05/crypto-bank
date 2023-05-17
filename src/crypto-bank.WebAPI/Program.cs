@@ -1,6 +1,6 @@
 using crypto_bank.Database;
-using crypto_bank.Domain;
-using crypto_bank.Domain.Validators.Base;
+using crypto_bank.Domain.Models.Validators.Base;
+using crypto_bank.Infrastructure;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Models;
 using crypto_bank.WebAPI.Models.Validators.Base;
@@ -12,6 +12,7 @@ builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
 builder.Services.AddDatabase();
 builder.Services.AddDomainModelValidators();
 builder.Services.AddApiModelValidators();
+builder.Services.AddInfrastructure();
 builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
 var app = builder.Build();
@@ -21,21 +22,14 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 app.MapPost("/user/register",
     async (
         UserRegistrationRequest request,
-        CryptoBankDbContext cryptoBankDb,
-        IValidator<User> userValidator,
+        UserService userService,
         IValidator<UserRegistrationRequest> requestValidator) =>
     {
         logger.LogInformation($"Registering user with email [{request.Email}]");
 
         await requestValidator.ValidateAndThrowAsync(request);
 
-        var user = new User(request.Email, request.Password);
-        await userValidator.ValidateAndThrowAsync(user);
-
-        var entityEntry = await cryptoBankDb.Users.AddAsync(user);
-        await cryptoBankDb.SaveChangesAsync();
-
-        var registeredUser = entityEntry.Entity;
+        var registeredUser = await userService.Register(request.Email, request.Password);
 
         logger.LogInformation($"User was registered with id [{registeredUser.Id}]");
 
