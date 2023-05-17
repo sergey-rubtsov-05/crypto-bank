@@ -1,29 +1,20 @@
-using crypto_bank.Database;
-using crypto_bank.Domain.Models.Validators.Base;
 using crypto_bank.Infrastructure;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Models;
-using crypto_bank.WebAPI.Models.Validators.Base;
 using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-builder.Services.AddDatabase();
-builder.Services.AddDomainModelValidators();
-builder.Services.AddApiModelValidators();
-builder.Services.AddInfrastructure();
-builder.Services.AddScoped<ExceptionHandlerMiddleware>();
+builder.RegisterDependencies();
 
 var app = builder.Build();
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 app.MapPost("/user/register",
     async (
         UserRegistrationRequest request,
         UserService userService,
-        IValidator<UserRegistrationRequest> requestValidator) =>
+        IValidator<UserRegistrationRequest> requestValidator,
+        ILogger<Program> logger) =>
     {
         logger.LogInformation($"Registering user with email [{request.Email}]");
 
