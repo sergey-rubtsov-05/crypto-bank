@@ -7,6 +7,7 @@ public static class DependencyRegisterer
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddScoped<UserService>();
+        services.AddScoped<TokenService>();
 
         return services;
     }
