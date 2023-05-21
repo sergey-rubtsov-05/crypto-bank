@@ -43,9 +43,9 @@ public class TokenService
 
             return new Token(accessToken, refreshToken);
         }
-        catch (GettingUserException gettingUserException)
+        catch (UserNotFoundException userNotFoundException)
         {
-            throw new AuthenticationException("Couldn't get the user", gettingUserException);
+            throw new AuthenticationException("Couldn't get the user", userNotFoundException);
         }
     }
 

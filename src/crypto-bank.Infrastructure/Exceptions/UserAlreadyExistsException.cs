@@ -1,8 +1,8 @@
 namespace crypto_bank.Infrastructure.Exceptions;
 
-public class GettingUserException : Exception
+public class UserAlreadyExistsException : Exception
 {
-    public GettingUserException(string email)
+    public UserAlreadyExistsException(string email)
     {
         Email = email;
     }

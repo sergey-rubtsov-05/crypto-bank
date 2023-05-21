@@ -1,9 +1,11 @@
 namespace crypto_bank.Infrastructure.Exceptions;
 
-public class UserNotFoundException : GettingUserException
+public class UserNotFoundException : Exception
 {
     public UserNotFoundException(string email)
-        : base(email)
     {
+        Email = email;
     }
+
+    public string Email { get; }
 }

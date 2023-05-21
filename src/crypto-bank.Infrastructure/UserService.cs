@@ -22,8 +22,9 @@ public class UserService
         var user = new User(email, password);
         await _userValidator.ValidateAndThrowAsync(user);
 
+        await ValidateUserExistingAndThrow(email);
+
         var entityEntry = await _dbContext.Users.AddAsync(user);
-        //todo validate email is unique
         await _dbContext.SaveChangesAsync();
 
         return entityEntry.Entity;
@@ -31,17 +32,19 @@ public class UserService
 
     public async Task<User> Get(string email)
     {
-        var users = await _dbContext.Users
-            .Where(user => user.Email.Equals(email)) //todo solve problem with case sensitivity
-            .Take(2)
-            .ToListAsync();
+        //todo solve problem with case sensitivity
+        var user = await _dbContext.Users.SingleOrDefaultAsync(user => user.Email.Equals(email));
 
-        if (!users.Any())
+        if (user is null)
             throw new UserNotFoundException(email);
 
-        if (users.Count > 1)
-            throw new MultipleUsersFoundException(email);
+        return user;
+    }
 
-        return users.Single();
+    private async Task ValidateUserExistingAndThrow(string email)
+    {
+        var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email));
+        if (isExist)
+            throw new UserAlreadyExistsException(email);
     }
 }
