@@ -1,22 +1,15 @@
 using crypto_bank.Domain.Models;
 using crypto_bank.Infrastructure.Exceptions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace crypto_bank.Infrastructure;
+namespace crypto_bank.Infrastructure.Authentication;
 
 public class TokenService
 {
-    /// <summary>
-    ///     TODO: this should be stored in configuration
-    /// </summary>
     private readonly TimeSpan _accessTokenLifeTime;
-
     private readonly JsonWebTokenHandler _jsonWebTokenHandler;
-
-    /// <summary>
-    ///     TODO: this should be stored in configuration
-    /// </summary>
     private readonly TimeSpan _refreshTokenLifeTime;
 
     /// <summary>
@@ -26,12 +19,12 @@ public class TokenService
 
     private readonly UserService _userService;
 
-    public TokenService(UserService userService)
+    public TokenService(UserService userService, IOptions<TokenOptions> tokenOptions)
     {
         _userService = userService;
         _jsonWebTokenHandler = new JsonWebTokenHandler();
-        _accessTokenLifeTime = TimeSpan.FromMinutes(5);
-        _refreshTokenLifeTime = TimeSpan.FromMinutes(60);
+        _accessTokenLifeTime = tokenOptions.Value.AccessTokenLifeTime;
+        _refreshTokenLifeTime = tokenOptions.Value.RefreshTokenLifeTime;
     }
 
     public async Task<Token> Create(string email, string password)

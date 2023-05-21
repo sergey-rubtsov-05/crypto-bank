@@ -13,7 +13,7 @@ public static class DependencyContainer
         builder.Services.AddDatabase();
         builder.Services.AddDomainModelValidators();
         builder.Services.AddApiModelValidators();
-        builder.Services.AddInfrastructure();
+        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddScoped<ExceptionHandlerMiddleware>();
     }
 }

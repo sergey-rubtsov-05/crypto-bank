@@ -1,4 +1,5 @@
 using crypto_bank.Infrastructure;
+using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Models;
 using FluentValidation;
