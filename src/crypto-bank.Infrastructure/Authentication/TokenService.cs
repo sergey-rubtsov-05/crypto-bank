@@ -36,8 +36,8 @@ public class TokenService
             if (!user.Password.Equals(password, StringComparison.Ordinal))
                 throw new AuthenticationException("Invalid password");
 
-            var accessToken = CreateAccessToken();
-            var refreshToken = CreateRefreshToken();
+            var accessToken = CreateAccessToken(email);
+            var refreshToken = CreateRefreshToken(email);
             //todo save to db
             //todo save as family of tokens
 
@@ -49,24 +49,24 @@ public class TokenService
         }
     }
 
-    private string CreateAccessToken()
+    private string CreateAccessToken(string email)
     {
-        var accessToken = CreateJsonWebToken(_accessTokenLifeTime);
+        var accessToken = CreateJsonWebToken(_accessTokenLifeTime, email);
         return accessToken;
     }
 
-    private string CreateRefreshToken()
+    private string CreateRefreshToken(string email)
     {
-        var refreshToken = CreateJsonWebToken(_refreshTokenLifeTime);
+        var refreshToken = CreateJsonWebToken(_refreshTokenLifeTime, email);
         return refreshToken;
     }
 
-    private string CreateJsonWebToken(TimeSpan tokenLifeTime)
+    private string CreateJsonWebToken(TimeSpan tokenLifeTime, string email)
     {
-        //todo token have to store information about user
         var securityTokenDescriptor = new SecurityTokenDescriptor
         {
             Expires = DateTime.UtcNow.Add(tokenLifeTime),
+            Claims = new Dictionary<string, object> { { JwtRegisteredClaimNames.Email, email } },
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(_secretKeyBytes), SecurityAlgorithms.HmacSha256),
         };
