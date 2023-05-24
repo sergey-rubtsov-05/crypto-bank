@@ -43,7 +43,6 @@ public class TokenService
 
             var accessToken = CreateAccessToken(tokenId, email);
             var refreshToken = CreateRefreshToken(tokenId, email);
-            //todo save as family of tokens
 
             var token = new Token(tokenId, accessToken, refreshToken);
 
@@ -84,5 +83,21 @@ public class TokenService
         };
         var accessToken = _jsonWebTokenHandler.CreateToken(securityTokenDescriptor);
         return accessToken;
+    }
+
+    public async Task Validate(string token)
+    {
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(_secretKeyBytes),
+            ValidateAudience = false,
+            ValidateIssuer = false,
+        };
+        var validationResult = await _jsonWebTokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
+
+        if (validationResult.IsValid)
+            return;
+
+        throw new AuthenticationException("Invalid token");
     }
 }

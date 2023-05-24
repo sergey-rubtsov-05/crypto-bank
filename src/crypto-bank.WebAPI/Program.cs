@@ -39,6 +39,9 @@ app.MapPost("/user/login",
         return Results.Ok(new UserLoginResponse(token.AccessToken, token.RefreshToken));
     });
 
+app.MapGet("/auth/validate", () => Results.Ok()).WithMetadata(new AuthenticationAttribute());
+
 app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseMiddleware<AuthenticationMiddleware>();
 
 app.Run();

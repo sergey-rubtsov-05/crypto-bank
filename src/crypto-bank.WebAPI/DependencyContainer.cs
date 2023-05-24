@@ -15,5 +15,6 @@ public static class DependencyContainer
         builder.Services.AddApiModelValidators();
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddScoped<ExceptionHandlerMiddleware>();
+        builder.Services.AddScoped<AuthenticationMiddleware>();
     }
 }
