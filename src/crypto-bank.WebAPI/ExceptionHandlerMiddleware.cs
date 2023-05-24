@@ -1,4 +1,5 @@
 using crypto_bank.Domain.Models.Validators.Base;
+using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.Infrastructure.Exceptions;
 using crypto_bank.WebAPI.Models.Validators.Base;
 using FluentValidation;
@@ -37,6 +38,11 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogInformation(userAlreadyExistsException, "User already exists");
             problemDetails = CreateProblemDetails(StatusCodes.Status409Conflict, "User already exists");
+        }
+        catch (AuthenticationException authenticationException)
+        {
+            _logger.LogInformation(authenticationException, "Authentication failed");
+            problemDetails = CreateProblemDetails(StatusCodes.Status401Unauthorized, "Authentication failed");
         }
         catch (Exception exception)
         {

@@ -1,3 +1,4 @@
+using crypto_bank.Database;
 using crypto_bank.Domain.Models;
 using crypto_bank.Infrastructure.Exceptions;
 using Microsoft.Extensions.Options;
@@ -9,6 +10,7 @@ namespace crypto_bank.Infrastructure.Authentication;
 public class TokenService
 {
     private readonly TimeSpan _accessTokenLifeTime;
+    private readonly CryptoBankDbContext _dbContext;
     private readonly JsonWebTokenHandler _jsonWebTokenHandler;
     private readonly TimeSpan _refreshTokenLifeTime;
 
@@ -19,9 +21,10 @@ public class TokenService
 
     private readonly UserService _userService;
 
-    public TokenService(UserService userService, IOptions<TokenOptions> tokenOptions)
+    public TokenService(UserService userService, IOptions<TokenOptions> tokenOptions, CryptoBankDbContext dbContext)
     {
         _userService = userService;
+        _dbContext = dbContext;
         _jsonWebTokenHandler = new JsonWebTokenHandler();
         _accessTokenLifeTime = tokenOptions.Value.AccessTokenLifeTime;
         _refreshTokenLifeTime = tokenOptions.Value.RefreshTokenLifeTime;
@@ -36,12 +39,18 @@ public class TokenService
             if (!user.Password.Equals(password, StringComparison.Ordinal))
                 throw new AuthenticationException("Invalid password");
 
-            var accessToken = CreateAccessToken(email);
-            var refreshToken = CreateRefreshToken(email);
-            //todo save to db
+            var tokenId = Guid.NewGuid();
+
+            var accessToken = CreateAccessToken(tokenId, email);
+            var refreshToken = CreateRefreshToken(tokenId, email);
             //todo save as family of tokens
 
-            return new Token(accessToken, refreshToken);
+            var token = new Token(tokenId, accessToken, refreshToken);
+
+            await _dbContext.Tokens.AddAsync(token);
+            await _dbContext.SaveChangesAsync();
+
+            return token;
         }
         catch (UserNotFoundException userNotFoundException)
         {
@@ -49,24 +58,27 @@ public class TokenService
         }
     }
 
-    private string CreateAccessToken(string email)
+    private string CreateAccessToken(Guid tokenId, string email)
     {
-        var accessToken = CreateJsonWebToken(_accessTokenLifeTime, email);
+        var accessToken = CreateJsonWebToken(_accessTokenLifeTime, tokenId, email);
         return accessToken;
     }
 
-    private string CreateRefreshToken(string email)
+    private string CreateRefreshToken(Guid tokenId, string email)
     {
-        var refreshToken = CreateJsonWebToken(_refreshTokenLifeTime, email);
+        var refreshToken = CreateJsonWebToken(_refreshTokenLifeTime, tokenId, email);
         return refreshToken;
     }
 
-    private string CreateJsonWebToken(TimeSpan tokenLifeTime, string email)
+    private string CreateJsonWebToken(TimeSpan tokenLifeTime, Guid tokenId, string email)
     {
         var securityTokenDescriptor = new SecurityTokenDescriptor
         {
             Expires = DateTime.UtcNow.Add(tokenLifeTime),
-            Claims = new Dictionary<string, object> { { JwtRegisteredClaimNames.Email, email } },
+            Claims = new Dictionary<string, object>
+            {
+                { JwtRegisteredClaimNames.Jti, tokenId }, { JwtRegisteredClaimNames.Email, email },
+            },
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(_secretKeyBytes), SecurityAlgorithms.HmacSha256),
         };
