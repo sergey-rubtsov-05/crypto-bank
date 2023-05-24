@@ -1,4 +1,5 @@
 using crypto_bank.Infrastructure;
+using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Models;
 using FluentValidation;
@@ -9,12 +10,13 @@ builder.RegisterDependencies();
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 app.MapPost("/user/register",
     async (
         UserRegistrationRequest request,
         UserService userService,
-        IValidator<UserRegistrationRequest> requestValidator,
-        ILogger<Program> logger) =>
+        IValidator<UserRegistrationRequest> requestValidator) =>
     {
         logger.LogInformation($"Registering user with email [{request.Email}]");
 
@@ -27,6 +29,19 @@ app.MapPost("/user/register",
         return Results.Created($"/user/{registeredUser.Id}", new UserRegistrationResponse { Id = registeredUser.Id });
     });
 
+app.MapPost("/user/login",
+    async (UserLoginRequest request, TokenService tokenService) =>
+    {
+        logger.LogInformation($"Logging in user with email [{request.Email}]");
+
+        var token = await tokenService.Create(request.Email, request.Password);
+
+        return Results.Ok(new UserLoginResponse(token.AccessToken, token.RefreshToken));
+    });
+
+app.MapGet("/auth/validate", () => Results.Ok()).WithMetadata(new AuthenticationAttribute());
+
 app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseMiddleware<AuthenticationMiddleware>();
 
 app.Run();

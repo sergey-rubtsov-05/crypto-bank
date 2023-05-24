@@ -10,7 +10,9 @@ public class UserMap
         var userEntityBuilder = modelBuilder.Entity<User>();
         userEntityBuilder.ToTable("users");
         userEntityBuilder.Property(user => user.Id).HasColumnName("id").IsRequired().UseIdentityAlwaysColumn();
-        userEntityBuilder.Property(user => user.Email).HasColumnName("email");
+        userEntityBuilder.Property(user => user.Email).HasColumnName("email").IsRequired();
         userEntityBuilder.Property(user => user.Password).HasColumnName("password");
+
+        userEntityBuilder.HasIndex(user => user.Email).IsUnique();
     }
 }
