@@ -1,14 +1,26 @@
+using crypto_bank.Infrastructure.Features.Users;
+using JetBrains.Annotations;
 using MediatR;
 
 namespace crypto_bank.WebAPI.Features.Users.Requests;
 
 public partial class Register
 {
+    [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
-        public Task<Response> Handle(Request request, CancellationToken cancellationToken)
+        private readonly UserService _userService;
+
+        public RequestHandler(UserService userService)
         {
-            return Task.FromResult(new Response(default)); //todo implement
+            _userService = userService;
+        }
+
+        public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
+        {
+            var user = await _userService.Register(request.Email, request.Password, request.BirthDate);
+
+            return new Response(user.Id);
         }
     }
 }

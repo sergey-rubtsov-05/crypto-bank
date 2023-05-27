@@ -1,9 +1,9 @@
-using crypto_bank.Domain.Models;
+using crypto_bank.Domain.Features.Users.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace crypto_bank.Database.Maps;
+namespace crypto_bank.Database.Features.Users;
 
-public class UserMap
+public static class UserMap
 {
     public static void Create(ModelBuilder modelBuilder)
     {
@@ -11,7 +11,9 @@ public class UserMap
         userEntityBuilder.ToTable("users");
         userEntityBuilder.Property(user => user.Id).HasColumnName("id").IsRequired().UseIdentityAlwaysColumn();
         userEntityBuilder.Property(user => user.Email).HasColumnName("email").IsRequired();
-        userEntityBuilder.Property(user => user.Password).HasColumnName("password");
+        userEntityBuilder.Property(user => user.Password).HasColumnName("password").IsRequired();
+        userEntityBuilder.Property(user => user.BirthDate).HasColumnName("birth_date");
+        userEntityBuilder.Property(user => user.RegisteredAt).HasColumnName("registered_at").IsRequired();
 
         userEntityBuilder.HasIndex(user => user.Email).IsUnique();
     }

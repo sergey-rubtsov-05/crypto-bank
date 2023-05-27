@@ -1,4 +1,4 @@
-namespace crypto_bank.Infrastructure.Exceptions;
+namespace crypto_bank.Infrastructure.Features.Users.Exceptions;
 
 public class UserNotFoundException : Exception
 {

@@ -1,18 +1,22 @@
 using System.Reflection;
+using crypto_bank.Common;
 using crypto_bank.Database;
+using crypto_bank.Infrastructure;
 using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 using crypto_bank.WebAPI.Models;
 using crypto_bank.WebAPI.Pipeline;
 using crypto_bank.WebAPI.Validation;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Internal;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+
+builder.Services.AddCommon();
 builder.Services.AddDatabase();
+builder.Services.AddInfrastructure(builder.Configuration);
+
 builder.RegisterDependencies();
 
 builder.Services.AddMediatR(cfg => cfg
@@ -22,8 +26,6 @@ builder.Services.AddMediatR(cfg => cfg
 builder.Services.AddSingleton<Dispatcher>();
 
 builder.Services.AddControllers(options => options.ModelValidatorProviders.Clear());
-
-builder.Services.TryAddSingleton<ISystemClock, SystemClock>();
 
 builder.Services.AddUsers();
 

@@ -1,11 +1,11 @@
+using crypto_bank.Common;
 using crypto_bank.WebAPI.Validation;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Internal;
 
 namespace crypto_bank.WebAPI.Features.Users.Requests;
 
-public partial class Register
+public static partial class Register
 {
     public record Request
     (
@@ -17,11 +17,11 @@ public partial class Register
 
     public class RequestValidator : ApiModelValidator<Request>
     {
-        public RequestValidator(ISystemClock systemClock)
+        public RequestValidator(IClock clock)
         {
             RuleFor(request => request.Email).NotEmpty().EmailAddress();
             RuleFor(request => request.Password).NotEmpty();
-            RuleFor(request => request.BirthDate).LessThanOrEqualTo(DateOnly.FromDateTime(systemClock.UtcNow.Date));
+            RuleFor(request => request.BirthDate).LessThanOrEqualTo(DateOnly.FromDateTime(clock.UtcNow.Date));
         }
     }
 }

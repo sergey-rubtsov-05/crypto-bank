@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace crypto_bank.Domain.Models.Validators.Base;
+namespace crypto_bank.Domain.Validation;
 
 public class DomainModelValidator<T> : AbstractValidator<T>
 {

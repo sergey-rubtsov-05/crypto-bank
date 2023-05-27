@@ -1,25 +1,28 @@
+using crypto_bank.Common;
 using crypto_bank.Database;
-using crypto_bank.Domain.Models;
-using crypto_bank.Infrastructure.Exceptions;
+using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace crypto_bank.Infrastructure;
+namespace crypto_bank.Infrastructure.Features.Users;
 
 public class UserService
 {
+    private readonly IClock _clock;
     private readonly CryptoBankDbContext _dbContext;
     private readonly IValidator<User> _userValidator;
 
-    public UserService(CryptoBankDbContext dbContext, IValidator<User> userValidator)
+    public UserService(CryptoBankDbContext dbContext, IValidator<User> userValidator, IClock clock)
     {
         _dbContext = dbContext;
         _userValidator = userValidator;
+        _clock = clock;
     }
 
-    public async Task<User> Register(string email, string password)
+    public async Task<User> Register(string email, string password, DateOnly? birthDate = null)
     {
-        var user = new User(email, password);
+        var user = new User(email, password, birthDate, _clock.UtcNow);
         await _userValidator.ValidateAndThrowAsync(user);
 
         await ValidateUserExistingAndThrow(email);

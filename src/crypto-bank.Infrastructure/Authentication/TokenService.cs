@@ -1,6 +1,7 @@
 using crypto_bank.Database;
 using crypto_bank.Domain.Models;
-using crypto_bank.Infrastructure.Exceptions;
+using crypto_bank.Infrastructure.Features.Users;
+using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
