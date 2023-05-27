@@ -1,33 +1,35 @@
-using crypto_bank.Infrastructure;
+using System.Reflection;
+using crypto_bank.Database;
 using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.WebAPI;
+using crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 using crypto_bank.WebAPI.Models;
-using FluentValidation;
+using crypto_bank.WebAPI.Pipeline;
+using crypto_bank.WebAPI.Validation;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Internal;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
+builder.Services.AddDatabase();
 builder.RegisterDependencies();
+
+builder.Services.AddMediatR(cfg => cfg
+    .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+    .AddOpenBehavior(typeof(ValidationBehavior<,>)));
+
+builder.Services.AddSingleton<Dispatcher>();
+
+builder.Services.AddControllers(options => options.ModelValidatorProviders.Clear());
+
+builder.Services.TryAddSingleton<ISystemClock, SystemClock>();
+
+builder.Services.AddUsers();
 
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-
-app.MapPost("/user/register",
-    async (
-        UserRegistrationRequest request,
-        UserService userService,
-        IValidator<UserRegistrationRequest> requestValidator) =>
-    {
-        logger.LogInformation($"Registering user with email [{request.Email}]");
-
-        await requestValidator.ValidateAndThrowAsync(request);
-
-        var registeredUser = await userService.Register(request.Email, request.Password);
-
-        logger.LogInformation($"User was registered with id [{registeredUser.Id}]");
-
-        return Results.Created($"/user/{registeredUser.Id}", new UserRegistrationResponse { Id = registeredUser.Id });
-    });
 
 app.MapPost("/user/login",
     async (UserLoginRequest request, TokenService tokenService) =>
@@ -43,5 +45,7 @@ app.MapGet("/auth/validate", () => Results.Ok()).WithMetadata(new Authentication
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseMiddleware<AuthenticationMiddleware>();
+
+app.MapControllers();
 
 app.Run();
