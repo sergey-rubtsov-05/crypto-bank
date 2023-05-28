@@ -1,5 +1,4 @@
 using crypto_bank.Domain.Validation;
-using crypto_bank.Infrastructure;
 
 namespace crypto_bank.WebAPI;
 

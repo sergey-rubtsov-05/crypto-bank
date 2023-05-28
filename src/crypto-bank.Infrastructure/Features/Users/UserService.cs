@@ -1,5 +1,6 @@
 using crypto_bank.Common;
 using crypto_bank.Database;
+using crypto_bank.Domain.Authorization;
 using crypto_bank.Domain.Features.Users.Models;
 using crypto_bank.Infrastructure.Common;
 using crypto_bank.Infrastructure.Features.Users.Exceptions;
@@ -32,7 +33,7 @@ public class UserService
         var salt = Guid.NewGuid().ToString();
         var passwordHash = _passwordHasher.Hash(password, salt);
 
-        var user = new User(email, passwordHash, salt, birthDate, _clock.UtcNow);
+        var user = new User(email, passwordHash, salt, birthDate, _clock.UtcNow, PolicyNames.UserRole);
         await _userValidator.ValidateAndThrowAsync(user);
 
         await ValidateUserExistingAndThrow(email);
