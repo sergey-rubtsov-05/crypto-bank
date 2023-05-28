@@ -3,9 +3,10 @@ namespace crypto_bank.Domain.Features.Users.Models;
 public record User
 (
     string Email,
-    string Password,
+    string PasswordHash,
+    string Salt,
     DateOnly? BirthDate,
-    DateTimeOffset RegisteredAt) //todo: password as plain text is not secure
+    DateTimeOffset RegisteredAt)
 {
     public int Id { get; init; }
 }

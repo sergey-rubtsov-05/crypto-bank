@@ -1,6 +1,7 @@
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Infrastructure.Common;
 using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +12,27 @@ public class UserService
 {
     private readonly IClock _clock;
     private readonly CryptoBankDbContext _dbContext;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly IValidator<User> _userValidator;
 
-    public UserService(CryptoBankDbContext dbContext, IValidator<User> userValidator, IClock clock)
+    public UserService(
+        CryptoBankDbContext dbContext,
+        IValidator<User> userValidator,
+        IClock clock,
+        IPasswordHasher passwordHasher)
     {
         _dbContext = dbContext;
         _userValidator = userValidator;
         _clock = clock;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<User> Register(string email, string password, DateOnly? birthDate = null)
     {
-        var user = new User(email, password, birthDate, _clock.UtcNow);
+        var salt = Guid.NewGuid().ToString();
+        var passwordHash = _passwordHasher.Hash(password, salt);
+
+        var user = new User(email, passwordHash, salt, birthDate, _clock.UtcNow);
         await _userValidator.ValidateAndThrowAsync(user);
 
         await ValidateUserExistingAndThrow(email);

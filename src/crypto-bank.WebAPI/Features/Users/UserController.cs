@@ -16,8 +16,8 @@ public class UserController : Controller
     }
 
     [HttpPost("register")]
-    public async Task Register(Register.Request request, CancellationToken cancellationToken)
+    public async Task<Register.Response> Register(Register.Request request, CancellationToken cancellationToken)
     {
-        await _dispatcher.Dispatch(request, cancellationToken);
+        return await _dispatcher.Dispatch(request, cancellationToken);
     }
 }

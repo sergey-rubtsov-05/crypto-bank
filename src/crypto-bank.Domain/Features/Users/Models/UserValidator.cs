@@ -9,7 +9,8 @@ public class UserValidator : DomainModelValidator<User>
     public UserValidator(IClock clock)
     {
         RuleFor(user => user.Email).NotEmpty().EmailAddress();
-        RuleFor(user => user.Password).NotEmpty();
+        RuleFor(user => user.PasswordHash).NotEmpty();
+        RuleFor(user => user.Salt).NotEmpty();
         RuleFor(user => user.BirthDate).LessThanOrEqualTo(DateOnly.FromDateTime(clock.UtcNow.Date));
         RuleFor(user => user.RegisteredAt).NotEmpty();
     }

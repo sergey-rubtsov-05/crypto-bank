@@ -37,7 +37,7 @@ public class TokenService
         {
             var user = await _userService.Get(email);
 
-            if (!user.Password.Equals(password, StringComparison.Ordinal))
+            if (!user.PasswordHash.Equals(password, StringComparison.Ordinal))
                 throw new AuthenticationException("Invalid password");
 
             var tokenId = Guid.NewGuid();

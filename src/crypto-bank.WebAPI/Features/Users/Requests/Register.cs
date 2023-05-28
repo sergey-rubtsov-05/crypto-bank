@@ -7,11 +7,7 @@ namespace crypto_bank.WebAPI.Features.Users.Requests;
 
 public static partial class Register
 {
-    public record Request
-    (
-        string Email,
-        string Password,
-        DateOnly? BirthDate) : IRequest<Response>; // todo password as plain text, should be hashed
+    public record Request(string Email, string Password, DateOnly? BirthDate) : IRequest<Response>;
 
     public record Response(int Id);
 
