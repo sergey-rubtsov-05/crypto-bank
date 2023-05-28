@@ -1,5 +1,5 @@
-using crypto_bank.Infrastructure.Authentication;
 using crypto_bank.Infrastructure.Common;
+using crypto_bank.Infrastructure.Features.Auth;
 using crypto_bank.Infrastructure.Features.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +14,7 @@ public static class InfrastructureServiceCollectionExtensions
     {
         services.AddUsers(configuration);
 
-        services.AddScoped<TokenService>();
-        services.Configure<TokenOptions>(configuration.GetSection("TokenOptions"));
+        services.AddAuth(configuration);
 
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
 

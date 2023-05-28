@@ -67,17 +67,6 @@ public class UserService
         return PolicyNames.UserRole;
     }
 
-    public async Task<User> Get(string email)
-    {
-        //todo solve problem with case sensitivity
-        var user = await _dbContext.Users.SingleOrDefaultAsync(user => user.Email.Equals(email));
-
-        if (user is null)
-            throw new UserNotFoundException(email);
-
-        return user;
-    }
-
     private async Task ValidateUserExistingAndThrow(string email)
     {
         var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email));

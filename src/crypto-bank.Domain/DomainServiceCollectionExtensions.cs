@@ -2,11 +2,11 @@ using crypto_bank.Domain.Features.Users.Models;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace crypto_bank.Domain.Validation;
+namespace crypto_bank.Domain;
 
-public static class ValidatorsRegisterer
+public static class DomainServiceCollectionExtensions
 {
-    public static IServiceCollection AddDomainModelValidators(this IServiceCollection services)
+    public static IServiceCollection AddDomain(this IServiceCollection services)
     {
         services.AddScoped<IValidator<User>, UserValidator>();
 

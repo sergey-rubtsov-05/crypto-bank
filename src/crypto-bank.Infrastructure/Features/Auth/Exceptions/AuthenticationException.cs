@@ -1,4 +1,4 @@
-namespace crypto_bank.Infrastructure.Authentication;
+namespace crypto_bank.Infrastructure.Features.Auth.Exceptions;
 
 public class AuthenticationException : Exception
 {

@@ -1,7 +1,5 @@
 using crypto_bank.Database.Features.Users;
-using crypto_bank.Database.Maps;
 using crypto_bank.Domain.Features.Users.Models;
-using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace crypto_bank.Database;
@@ -14,11 +12,9 @@ public class CryptoBankDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
-    public DbSet<Token> Tokens => Set<Token>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         UserMap.Create(modelBuilder);
-        TokenMap.Create(modelBuilder);
     }
 }

@@ -1,4 +1,5 @@
-using crypto_bank.Infrastructure.Authentication;
+using crypto_bank.Infrastructure.Features.Auth;
+using crypto_bank.Infrastructure.Features.Auth.Exceptions;
 using Microsoft.AspNetCore.Http.Features;
 
 namespace crypto_bank.WebAPI;

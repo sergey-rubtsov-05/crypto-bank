@@ -1,5 +1,5 @@
 using crypto_bank.Domain.Validation;
-using crypto_bank.Infrastructure.Authentication;
+using crypto_bank.Infrastructure.Features.Auth.Exceptions;
 using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using crypto_bank.WebAPI.Validation;
 using FluentValidation;
