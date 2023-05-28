@@ -12,7 +12,7 @@ public static class InfrastructureServiceCollectionExtensions
         this IServiceCollection services,
         ConfigurationManager configuration)
     {
-        services.AddUsers();
+        services.AddUsers(configuration);
 
         services.AddScoped<TokenService>();
         services.Configure<TokenOptions>(configuration.GetSection("TokenOptions"));
