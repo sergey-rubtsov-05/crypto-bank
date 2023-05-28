@@ -1,7 +1,8 @@
+using crypto_bank.Domain.Features.Users.Models;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace crypto_bank.Domain.Models.Validators.Base;
+namespace crypto_bank.Domain.Validation;
 
 public static class ValidatorsRegisterer
 {

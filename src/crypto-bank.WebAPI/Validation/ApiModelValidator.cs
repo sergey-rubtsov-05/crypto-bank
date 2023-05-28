@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace crypto_bank.WebAPI.Models.Validators.Base;
+namespace crypto_bank.WebAPI.Validation;
 
 public class ApiModelValidator<T> : AbstractValidator<T>
 {

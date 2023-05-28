@@ -1,7 +1,7 @@
-using crypto_bank.Domain.Models.Validators.Base;
+using crypto_bank.Domain.Validation;
 using crypto_bank.Infrastructure.Authentication;
-using crypto_bank.Infrastructure.Exceptions;
-using crypto_bank.WebAPI.Models.Validators.Base;
+using crypto_bank.Infrastructure.Features.Users.Exceptions;
+using crypto_bank.WebAPI.Validation;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
