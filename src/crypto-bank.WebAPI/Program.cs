@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain;
@@ -24,7 +25,10 @@ builder.Services.AddMediatR(cfg => cfg
 
 builder.Services.AddSingleton<Dispatcher>();
 
-builder.Services.AddControllers(options => options.ModelValidatorProviders.Clear());
+builder.Services
+    .AddControllers(options => options.ModelValidatorProviders.Clear())
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 builder.Services.AddScoped<AuthenticationMiddleware>();
 

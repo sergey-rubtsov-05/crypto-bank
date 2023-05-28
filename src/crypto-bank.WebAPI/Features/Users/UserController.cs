@@ -20,4 +20,10 @@ public class UserController : Controller
     {
         return await _dispatcher.Dispatch(request, cancellationToken);
     }
+
+    [HttpGet("profile")]
+    public async Task<GetProfile.Response> GetProfile(CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(new GetProfile.Request(), cancellationToken);
+    }
 }
