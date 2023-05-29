@@ -1,5 +1,6 @@
+using System.Security.Claims;
 using System.Text;
-using crypto_bank.Infrastructure.Features.Auth.Exceptions;
+using crypto_bank.Common;
 using crypto_bank.Infrastructure.Features.Auth.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -9,45 +10,31 @@ namespace crypto_bank.Infrastructure.Features.Auth;
 
 public class TokenService
 {
-    private readonly TimeSpan _accessTokenLifeTime;
+    private readonly IClock _clock;
     private readonly JsonWebTokenHandler _jsonWebTokenHandler;
-    private readonly byte[] _secretKeyBytes;
+    private readonly JwtOptions _jwtOptions;
 
-    public TokenService(IOptions<AuthOptions> authOptions)
+    public TokenService(IOptions<AuthOptions> authOptions, IClock clock)
     {
+        _clock = clock;
         _jsonWebTokenHandler = new JsonWebTokenHandler();
-        _accessTokenLifeTime = authOptions.Value.Jwt.AccessTokenLifeTime;
-        _secretKeyBytes = Encoding.UTF8.GetBytes(authOptions.Value.Jwt.SigningKey);
+        _jwtOptions = authOptions.Value.Jwt;
     }
 
-    public string CreateAccessToken()
+    public string CreateAccessToken(int userId)
     {
-        var key = new SymmetricSecurityKey(_secretKeyBytes);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SigningKey));
         var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var securityTokenDescriptor = new SecurityTokenDescriptor
         {
-            Expires = DateTime.UtcNow.Add(_accessTokenLifeTime),
-            Claims = new Dictionary<string, object>(),
+            Issuer = _jwtOptions.Issuer,
+            Audience = _jwtOptions.Audience,
+            Expires = _clock.UtcNow.Add(_jwtOptions.AccessTokenLifeTime),
             SigningCredentials = signingCredentials,
+            Claims = new Dictionary<string, object> { { ClaimTypes.NameIdentifier, userId } },
         };
         var accessToken = _jsonWebTokenHandler.CreateToken(securityTokenDescriptor);
 
         return accessToken;
-    }
-
-    public async Task Validate(string token)
-    {
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            IssuerSigningKey = new SymmetricSecurityKey(_secretKeyBytes),
-            ValidateAudience = false,
-            ValidateIssuer = false,
-        };
-        var validationResult = await _jsonWebTokenHandler.ValidateTokenAsync(token, tokenValidationParameters);
-
-        if (validationResult.IsValid)
-            return;
-
-        throw new AuthenticationException("Invalid token");
     }
 }

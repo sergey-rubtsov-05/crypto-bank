@@ -2,5 +2,5 @@
 
 public interface IClock
 {
-    public DateTimeOffset UtcNow { get; }
+    public DateTime UtcNow { get; }
 }

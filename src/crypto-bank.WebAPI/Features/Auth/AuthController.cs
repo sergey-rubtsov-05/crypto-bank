@@ -1,5 +1,6 @@
 using crypto_bank.WebAPI.Features.Auth.Requests;
 using crypto_bank.WebAPI.Pipeline;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace crypto_bank.WebAPI.Features.Auth;
@@ -15,6 +16,7 @@ public class AuthController : Controller
         _dispatcher = dispatcher;
     }
 
+    [AllowAnonymous]
     [HttpPost]
     public async Task<Authenticate.Response> Authenticate(
         Authenticate.Request request,
