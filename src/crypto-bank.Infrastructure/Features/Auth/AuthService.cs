@@ -22,7 +22,7 @@ public class AuthService
     {
         var userAuthenticateInfo = await _dbContext.Users
             .Where(user => user.Email.Equals(email))
-            .Select(user => new { user.PasswordHash, user.Salt })
+            .Select(user => new { user.Id, user.PasswordHash, user.Salt })
             .SingleOrDefaultAsync();
 
         if (userAuthenticateInfo is null)
@@ -33,6 +33,6 @@ public class AuthService
         if (!userAuthenticateInfo.PasswordHash.Equals(passwordHash, StringComparison.Ordinal))
             throw new AuthenticationException("Invalid password");
 
-        return _tokenService.CreateAccessToken();
+        return _tokenService.CreateAccessToken(userAuthenticateInfo.Id);
     }
 }
