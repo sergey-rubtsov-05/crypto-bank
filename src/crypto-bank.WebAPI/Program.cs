@@ -64,7 +64,7 @@ builder.Services.AddDatabase();
 builder.Services.AddDomain();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddAccounts();
+builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddAuth();
 builder.Services.AddUsers();
 
@@ -82,3 +82,4 @@ app.Run();
 //TODO Refactorings:
 // 1. Get rid of the project Infrastructure and move its content to the project WebAPI
 // 2. Use the same structure in features
+// 3. Get rid of validators in Domain project
