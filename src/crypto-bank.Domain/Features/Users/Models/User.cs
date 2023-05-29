@@ -9,7 +9,7 @@ public record User
     string Salt,
     DateOnly? BirthDate,
     DateTimeOffset RegisteredAt,
-    PolicyNames Roles)
+    Role[] Roles)
 {
     public int Id { get; init; }
 }
