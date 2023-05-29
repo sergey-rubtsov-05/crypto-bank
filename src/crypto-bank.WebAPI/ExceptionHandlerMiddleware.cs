@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using crypto_bank.Domain.Validation;
 using crypto_bank.Infrastructure.Features.Auth.Exceptions;
 using crypto_bank.Infrastructure.Features.Users.Exceptions;
+using crypto_bank.WebAPI.Errors;
 using crypto_bank.WebAPI.Validation;
 using FluentValidation;
 using FluentValidation.Results;
@@ -43,6 +45,21 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogInformation(authenticationException, "Authentication failed");
             problemDetails = CreateProblemDetails(StatusCodes.Status401Unauthorized, "Authentication failed");
+        }
+        catch (LogicConflictException logicConflictException)
+        {
+            _logger.LogInformation(logicConflictException, "Logic conflict occured");
+            problemDetails = new ProblemDetails
+            {
+                Title = "Logic conflict",
+                Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422",
+                Detail = logicConflictException.Message,
+                Status = StatusCodes.Status422UnprocessableEntity,
+            };
+
+            problemDetails.Extensions.Add("traceId", Activity.Current?.Id ?? context.TraceIdentifier);
+
+            problemDetails.Extensions["code"] = logicConflictException.Code;
         }
         catch (Exception exception)
         {

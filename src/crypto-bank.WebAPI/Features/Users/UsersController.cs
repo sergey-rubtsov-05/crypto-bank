@@ -8,11 +8,11 @@ namespace crypto_bank.WebAPI.Features.Users;
 
 [ApiController]
 [Route("/users")]
-public class UserController : Controller
+public class UsersController : Controller
 {
     private readonly Dispatcher _dispatcher;
 
-    public UserController(Dispatcher dispatcher)
+    public UsersController(Dispatcher dispatcher)
     {
         _dispatcher = dispatcher;
     }
