@@ -1,3 +1,4 @@
+using crypto_bank.WebAPI.Authorization;
 using crypto_bank.WebAPI.Features.Users.Requests;
 using crypto_bank.WebAPI.Pipeline;
 using Microsoft.AspNetCore.Authorization;
@@ -28,5 +29,14 @@ public class UserController : Controller
     public async Task<GetProfile.Response> GetProfile(CancellationToken cancellationToken)
     {
         return await _dispatcher.Dispatch(new GetProfile.Request(User), cancellationToken);
+    }
+
+    [Authorize(Policy = PolicyName.AdministratorRole)]
+    [HttpPost("roles")]
+    public async Task<UpdateRoles.Response> UpdateRoles(
+        UpdateRoles.Request request,
+        CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(request, cancellationToken);
     }
 }

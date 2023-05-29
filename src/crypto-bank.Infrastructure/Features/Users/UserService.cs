@@ -51,20 +51,20 @@ public class UserService
         return entityEntry.Entity;
     }
 
-    private async Task<PolicyNames> DetermineRoles(string email)
+    private async Task<Role[]> DetermineRoles(string email)
     {
         var administratorAlreadyExits =
-            await _dbContext.Users.AnyAsync(user => user.Roles.HasFlag(PolicyNames.AdministratorRole));
+            await _dbContext.Users.AnyAsync(user => user.Roles.Contains(Role.Administrator));
 
         if (administratorAlreadyExits)
-            return PolicyNames.UserRole;
+            return new[] { Role.User };
 
         var isInitialAdministratorEmail = email.Equals(_options.AdministratorEmail, StringComparison.OrdinalIgnoreCase);
 
         if (isInitialAdministratorEmail)
-            return PolicyNames.AdministratorRole;
+            return new[] { Role.Administrator };
 
-        return PolicyNames.UserRole;
+        return new[] { Role.User };
     }
 
     private async Task ValidateUserExistingAndThrow(string email)
@@ -72,5 +72,15 @@ public class UserService
         var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email));
         if (isExist)
             throw new UserAlreadyExistsException(email);
+    }
+
+    public async Task UpdateRoles(int userId, Role[] newRoles)
+    {
+        var updatedUser = new User(userId) { Roles = newRoles };
+
+        _dbContext.Attach(updatedUser);
+        _dbContext.Entry(updatedUser).Property(user => user.Roles).IsModified = true;
+
+        await _dbContext.SaveChangesAsync();
     }
 }

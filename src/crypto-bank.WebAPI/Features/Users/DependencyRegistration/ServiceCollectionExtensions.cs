@@ -8,6 +8,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddUsers(this IServiceCollection services)
     {
         services.AddScoped<IValidator<Register.Request>, Register.RequestValidator>();
+        services.AddScoped<IValidator<UpdateRoles.Request>, UpdateRoles.RequestValidator>();
 
         return services;
     }
