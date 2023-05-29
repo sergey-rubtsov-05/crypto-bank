@@ -73,4 +73,14 @@ public class UserService
         if (isExist)
             throw new UserAlreadyExistsException(email);
     }
+
+    public async Task UpdateRoles(int userId, Role[] newRoles)
+    {
+        var updatedUser = new User(userId) { Roles = newRoles };
+
+        _dbContext.Attach(updatedUser);
+        _dbContext.Entry(updatedUser).Property(user => user.Roles).IsModified = true;
+
+        await _dbContext.SaveChangesAsync();
+    }
 }

@@ -1,3 +1,4 @@
+using crypto_bank.Infrastructure.Features.Users;
 using JetBrains.Annotations;
 using MediatR;
 
@@ -8,9 +9,18 @@ public partial class UpdateRoles
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
-        public Task<Response> Handle(Request request, CancellationToken cancellationToken)
+        private readonly UserService _userService;
+
+        public RequestHandler(UserService userService)
         {
-            return Task.FromResult(new Response());
+            _userService = userService;
+        }
+
+        public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
+        {
+            await _userService.UpdateRoles(request.UserId, request.NewRoles);
+
+            return new Response(); //todo: why I return empty response? Could I return just HttpStatusCode.OK?
         }
     }
 }
