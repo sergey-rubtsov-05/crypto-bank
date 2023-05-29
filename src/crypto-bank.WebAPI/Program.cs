@@ -9,6 +9,7 @@ using crypto_bank.Infrastructure;
 using crypto_bank.Infrastructure.Features.Auth.Options;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Authorization;
+using crypto_bank.WebAPI.Features.Accounts.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 using crypto_bank.WebAPI.Pipeline;
@@ -29,6 +30,8 @@ builder.Services.AddSingleton<Dispatcher>();
 builder.Services
     .AddControllers(options => options.ModelValidatorProviders.Clear())
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
@@ -61,6 +64,7 @@ builder.Services.AddDatabase();
 builder.Services.AddDomain();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddAccounts();
 builder.Services.AddAuth();
 builder.Services.AddUsers();
 
@@ -74,3 +78,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//TODO Refactorings:
+// 1. Get rid of the project Infrastructure and move its content to the project WebAPI
+// 2. Use the same structure in features

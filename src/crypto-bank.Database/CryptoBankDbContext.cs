@@ -1,4 +1,6 @@
+using crypto_bank.Database.Features.Accounts;
 using crypto_bank.Database.Features.Users;
+using crypto_bank.Domain.Features.Accounts.Models;
 using crypto_bank.Domain.Features.Users.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +13,12 @@ public class CryptoBankDbContext : DbContext
     {
     }
 
+    public DbSet<Account> Accounts => Set<Account>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        AccountMap.Create(modelBuilder);
         UserMap.Create(modelBuilder);
     }
 }

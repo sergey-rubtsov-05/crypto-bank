@@ -1,0 +1,25 @@
+using crypto_bank.WebAPI.Features.Accounts.Requests;
+using crypto_bank.WebAPI.Pipeline;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace crypto_bank.WebAPI.Features.Accounts;
+
+[ApiController]
+[Route("/accounts")]
+public class AccountsController : Controller
+{
+    private readonly Dispatcher _dispatcher;
+
+    public AccountsController(Dispatcher dispatcher)
+    {
+        _dispatcher = dispatcher;
+    }
+
+    [Authorize]
+    [HttpPost("create")]
+    public async Task<Create.Response> Create(Create.Request request, CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(request, cancellationToken);
+    }
+}
