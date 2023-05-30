@@ -59,7 +59,7 @@ public class Create
 
             var currencyNumberOfAccounts =
                 await _dbContext.Accounts.CountAsync(account => account.UserId == userId, cancellationToken);
-            if (currencyNumberOfAccounts > _options.Value.MaximumAccountsPerUser)
+            if (currencyNumberOfAccounts >= _options.Value.MaximumAccountsPerUser)
                 throw new LogicConflictException(CreateAccountLogicConflictErrors.MaximumNumberOfAccountsReached);
 
             var account = new Account { UserId = userId, Currency = request.Currency, OpenedAt = _clock.UtcNow };

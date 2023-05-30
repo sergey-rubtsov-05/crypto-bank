@@ -22,4 +22,11 @@ public class AccountsController : Controller
     {
         return await _dispatcher.Dispatch(request, cancellationToken);
     }
+
+    [Authorize]
+    [HttpGet("list")]
+    public async Task<GetList.Response> GetList(CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(new GetList.Request(User), cancellationToken);
+    }
 }
