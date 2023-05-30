@@ -81,6 +81,6 @@ app.MapControllers();
 app.Run();
 
 //TODO Refactorings:
-// 1. Get rid of the project Infrastructure and move its content to the project WebAPI
-// 2. Use the same structure in features
-// 3. Get rid of validators in Domain project
+//TODO 1. Get rid of the project Infrastructure and move its content to the project WebAPI
+//TODO 2. Use the same structure in features
+//TODO 3. Get rid of validators in Domain project

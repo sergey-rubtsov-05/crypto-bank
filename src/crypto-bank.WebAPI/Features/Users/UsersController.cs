@@ -33,10 +33,13 @@ public class UsersController : Controller
 
     [Authorize(Policy = PolicyName.AdministratorRole)]
     [HttpPost("roles")]
-    public async Task<UpdateRoles.Response> UpdateRoles(
+    public async Task<IActionResult> UpdateRoles(
         UpdateRoles.Request request,
         CancellationToken cancellationToken)
     {
-        return await _dispatcher.Dispatch(request, cancellationToken);
+        await _dispatcher.Dispatch(request, cancellationToken);
+
+        //todo: question: is it ok to use IActionResult here? Or should we use some kind of special response?
+        return new NoContentResult();
     }
 }

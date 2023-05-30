@@ -7,7 +7,7 @@ namespace crypto_bank.WebAPI.Features.Users.Requests;
 
 public partial class UpdateRoles
 {
-    public record Request(int UserId, Role[] NewRoles) : IRequest<Response>;
+    public record Request(int UserId, Role[] NewRoles) : IRequest;
 
     public class RequestValidator : ApiModelValidator<Request>
     {
@@ -17,6 +17,4 @@ public partial class UpdateRoles
             RuleFor(request => request.NewRoles).NotEmpty();
         }
     }
-
-    public record Response;
 }

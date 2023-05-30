@@ -21,6 +21,7 @@ public class DatabaseMigrator : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        //todo: use migration instead of drop database
         await using var serviceScope = _serviceScopeFactory.CreateAsyncScope();
         var cryptoBankDb = serviceScope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         await cryptoBankDb.Database.EnsureDeletedAsync(cancellationToken);

@@ -18,4 +18,12 @@ public class Dispatcher
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
         return await mediator.Send(request, cancellationToken);
     }
+
+    public async Task Dispatch(IRequest request, CancellationToken cancellationToken)
+    {
+        // todo: question: why not use the same scope from current request?
+        await using var scope = _serviceScopeFactory.CreateAsyncScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        await mediator.Send(request, cancellationToken);
+    }
 }
