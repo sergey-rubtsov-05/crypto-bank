@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 
-namespace crypto_bank.WebAPI.Validation;
+namespace crypto_bank.WebAPI.Pipeline;
 
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {

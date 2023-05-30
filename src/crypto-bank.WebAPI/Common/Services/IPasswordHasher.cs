@@ -1,4 +1,4 @@
-namespace crypto_bank.Infrastructure.Common;
+namespace crypto_bank.WebAPI.Common.Services;
 
 public interface IPasswordHasher
 {

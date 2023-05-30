@@ -1,7 +1,8 @@
+using crypto_bank.WebAPI.Common.Errors.Exceptions;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace crypto_bank.WebAPI.Validation;
+namespace crypto_bank.WebAPI.Common.Validation;
 
 public class ApiModelValidator<T> : AbstractValidator<T>
 {

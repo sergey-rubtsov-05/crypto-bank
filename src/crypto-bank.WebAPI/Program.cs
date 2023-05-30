@@ -4,15 +4,14 @@ using System.Text.Json.Serialization;
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Authorization;
-using crypto_bank.Infrastructure;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Authorization;
+using crypto_bank.WebAPI.Common;
 using crypto_bank.WebAPI.Features.Accounts.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.Options;
 using crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 using crypto_bank.WebAPI.Pipeline;
-using crypto_bank.WebAPI.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -59,10 +58,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(PolicyName.AnalystRole, policy => policy.RequireRole(Role.Analyst.ToString()));
 });
 
-builder.Services.AddCommon();
-builder.Services.AddDatabase();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCommonProject();
+builder.Services.AddDatabaseProject();
 
+builder.Services.AddCommon();
 builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddUsers(builder.Configuration);
@@ -79,5 +78,4 @@ app.MapControllers();
 app.Run();
 
 //TODO Refactorings:
-//TODO 1. Get rid of the project Infrastructure and move its content to the project WebAPI
-//TODO 2. Use the same structure in features
+//TODO 1. Use the same structure in features

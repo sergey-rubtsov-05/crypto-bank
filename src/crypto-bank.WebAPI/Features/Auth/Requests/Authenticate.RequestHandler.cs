@@ -1,5 +1,5 @@
 using crypto_bank.Database;
-using crypto_bank.Infrastructure.Common;
+using crypto_bank.WebAPI.Common.Services;
 using crypto_bank.WebAPI.Features.Auth.Exceptions;
 using crypto_bank.WebAPI.Features.Auth.Services;
 using JetBrains.Annotations;

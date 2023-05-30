@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto-bank.Infrastructure", "src\crypto-bank.Infrastructure\crypto-bank.Infrastructure.csproj", "{D6C23BA5-C535-4B42-A7F3-66C01E11E6C6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto-bank.Common", "src\crypto-bank.Common\crypto-bank.Common.csproj", "{B7BB73E0-5454-4F9E-9831-2016BD6783F9}"
 EndProject
 Global
@@ -34,10 +32,6 @@ Global
 		{82DF124C-6706-4546-8FF8-448AEC0790DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82DF124C-6706-4546-8FF8-448AEC0790DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82DF124C-6706-4546-8FF8-448AEC0790DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6C23BA5-C535-4B42-A7F3-66C01E11E6C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6C23BA5-C535-4B42-A7F3-66C01E11E6C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6C23BA5-C535-4B42-A7F3-66C01E11E6C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6C23BA5-C535-4B42-A7F3-66C01E11E6C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B7BB73E0-5454-4F9E-9831-2016BD6783F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B7BB73E0-5454-4F9E-9831-2016BD6783F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7BB73E0-5454-4F9E-9831-2016BD6783F9}.Release|Any CPU.ActiveCfg = Release|Any CPU

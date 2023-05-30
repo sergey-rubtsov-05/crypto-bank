@@ -5,7 +5,7 @@ namespace crypto_bank.Database;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddDatabase(this IServiceCollection services)
+    public static IServiceCollection AddDatabaseProject(this IServiceCollection services)
     {
         //todo move password to secrets
         var connectionString = "Host=localhost;Port=5432;Database=crypto_bank_db;Username=postgres;Password=nonsecret";

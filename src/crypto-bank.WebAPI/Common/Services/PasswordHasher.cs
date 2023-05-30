@@ -1,7 +1,7 @@
 using System.Text;
 using Isopoh.Cryptography.Argon2;
 
-namespace crypto_bank.Infrastructure.Common;
+namespace crypto_bank.WebAPI.Common.Services;
 
 internal class PasswordHasher : IPasswordHasher
 {

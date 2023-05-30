@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using crypto_bank.WebAPI.Errors;
+using crypto_bank.WebAPI.Common.Errors.Exceptions;
 using crypto_bank.WebAPI.Features.Auth.Exceptions;
-using crypto_bank.WebAPI.Validation;
-using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,7 +66,9 @@ public class ExceptionHandlerMiddleware : IMiddleware
         return new ProblemDetails { Status = httpStatusCode, Title = title };
     }
 
-    private static ProblemDetails CreateProblemDetails(ValidationException validationException, int httpStatusCode)
+    private static ProblemDetails CreateProblemDetails(
+        ApiModelValidationException validationException,
+        int httpStatusCode)
     {
         var validationFailures = validationException.Errors ?? Enumerable.Empty<ValidationFailure>();
         var problemDetails = new ProblemDetails

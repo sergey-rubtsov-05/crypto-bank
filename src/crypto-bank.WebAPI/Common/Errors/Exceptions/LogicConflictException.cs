@@ -1,4 +1,4 @@
-namespace crypto_bank.WebAPI.Errors;
+namespace crypto_bank.WebAPI.Common.Errors.Exceptions;
 
 public class LogicConflictException : Exception
 {

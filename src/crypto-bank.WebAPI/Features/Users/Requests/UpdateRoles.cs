@@ -1,5 +1,5 @@
 using crypto_bank.Domain.Authorization;
-using crypto_bank.WebAPI.Validation;
+using crypto_bank.WebAPI.Common.Validation;
 using FluentValidation;
 using MediatR;
 
