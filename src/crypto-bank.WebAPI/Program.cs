@@ -5,11 +5,11 @@ using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Authorization;
 using crypto_bank.Infrastructure;
-using crypto_bank.Infrastructure.Features.Auth.Options;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Authorization;
 using crypto_bank.WebAPI.Features.Accounts.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.DependencyRegistration;
+using crypto_bank.WebAPI.Features.Auth.Options;
 using crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 using crypto_bank.WebAPI.Pipeline;
 using crypto_bank.WebAPI.Validation;
@@ -64,7 +64,7 @@ builder.Services.AddDatabase();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAccounts(builder.Configuration);
-builder.Services.AddAuth();
+builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddUsers(builder.Configuration);
 
 var app = builder.Build();

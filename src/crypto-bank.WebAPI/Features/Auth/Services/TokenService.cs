@@ -2,12 +2,12 @@ using System.Security.Claims;
 using System.Text;
 using crypto_bank.Common;
 using crypto_bank.Domain.Authorization;
-using crypto_bank.Infrastructure.Features.Auth.Options;
+using crypto_bank.WebAPI.Features.Auth.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace crypto_bank.Infrastructure.Features.Auth;
+namespace crypto_bank.WebAPI.Features.Auth.Services;
 
 public class TokenService
 {

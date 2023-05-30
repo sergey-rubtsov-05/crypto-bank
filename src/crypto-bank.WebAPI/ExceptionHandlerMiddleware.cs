@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using crypto_bank.Infrastructure.Features.Auth.Exceptions;
 using crypto_bank.WebAPI.Errors;
+using crypto_bank.WebAPI.Features.Auth.Exceptions;
 using crypto_bank.WebAPI.Validation;
 using FluentValidation;
 using FluentValidation.Results;

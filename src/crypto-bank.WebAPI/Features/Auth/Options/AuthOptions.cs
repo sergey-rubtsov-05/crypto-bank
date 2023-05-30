@@ -1,4 +1,4 @@
-namespace crypto_bank.Infrastructure.Features.Auth.Options;
+namespace crypto_bank.WebAPI.Features.Auth.Options;
 
 public record AuthOptions
 {
