@@ -57,6 +57,7 @@ builder.Services
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(PolicyName.AdministratorRole, policy => policy.RequireRole(Role.Administrator.ToString()));
+    options.AddPolicy(PolicyName.AnalystRole, policy => policy.RequireRole(Role.Analyst.ToString()));
 });
 
 builder.Services.AddCommon();

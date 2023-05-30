@@ -1,3 +1,4 @@
+using crypto_bank.WebAPI.Authorization;
 using crypto_bank.WebAPI.Features.Accounts.Requests;
 using crypto_bank.WebAPI.Pipeline;
 using Microsoft.AspNetCore.Authorization;
@@ -28,5 +29,14 @@ public class AccountsController : Controller
     public async Task<GetList.Response> GetList(CancellationToken cancellationToken)
     {
         return await _dispatcher.Dispatch(new GetList.Request(User), cancellationToken);
+    }
+
+    [Authorize(Policy = PolicyName.AnalystRole)]
+    [HttpGet("numberOfOpenedAccounts")]
+    public async Task<GetNumberOfOpenedAccounts.Response> GetNumberOfOpenedAccounts(
+        [FromQuery] GetNumberOfOpenedAccounts.Request request,
+        CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(request, cancellationToken);
     }
 }
