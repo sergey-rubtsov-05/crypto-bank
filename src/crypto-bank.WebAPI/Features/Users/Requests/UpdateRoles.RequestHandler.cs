@@ -1,4 +1,5 @@
-using crypto_bank.Infrastructure.Features.Users;
+using crypto_bank.Database;
+using crypto_bank.Domain.Features.Users.Models;
 using JetBrains.Annotations;
 using MediatR;
 
@@ -9,16 +10,21 @@ public partial class UpdateRoles
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request>
     {
-        private readonly UserService _userService;
+        private readonly CryptoBankDbContext _dbContext;
 
-        public RequestHandler(UserService userService)
+        public RequestHandler(CryptoBankDbContext dbContext)
         {
-            _userService = userService;
+            _dbContext = dbContext;
         }
 
         public async Task Handle(Request request, CancellationToken cancellationToken)
         {
-            await _userService.UpdateRoles(request.UserId, request.NewRoles);
+            var updatedUser = new User(request.UserId) { Roles = request.NewRoles };
+
+            _dbContext.Attach(updatedUser);
+            _dbContext.Entry(updatedUser).Property(user => user.Roles).IsModified = true;
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

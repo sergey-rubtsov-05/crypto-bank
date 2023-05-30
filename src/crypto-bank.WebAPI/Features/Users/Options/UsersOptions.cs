@@ -1,4 +1,4 @@
-namespace crypto_bank.Infrastructure.Features.Users.Options;
+namespace crypto_bank.WebAPI.Features.Users.Options;
 
 public class UsersOptions
 {

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using crypto_bank.Infrastructure.Features.Auth.Exceptions;
-using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using crypto_bank.WebAPI.Errors;
 using crypto_bank.WebAPI.Validation;
 using FluentValidation;
@@ -29,11 +28,6 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogInformation(apiModelValidationException, "Api model validation failed");
             problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
-        }
-        catch (UserAlreadyExistsException userAlreadyExistsException)
-        {
-            _logger.LogInformation(userAlreadyExistsException, "User already exists");
-            problemDetails = CreateProblemDetails(StatusCodes.Status409Conflict, "User already exists");
         }
         catch (AuthenticationException authenticationException)
         {

@@ -65,7 +65,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddAuth();
-builder.Services.AddUsers();
+builder.Services.AddUsers(builder.Configuration);
 
 var app = builder.Build();
 
