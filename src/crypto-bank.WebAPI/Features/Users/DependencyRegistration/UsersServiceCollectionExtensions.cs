@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace crypto_bank.WebAPI.Features.Users.DependencyRegistration;
 
-public static class ServiceCollectionExtensions
+public static class UsersServiceCollectionExtensions
 {
     public static IServiceCollection AddUsers(this IServiceCollection services, IConfiguration configuration)
     {
