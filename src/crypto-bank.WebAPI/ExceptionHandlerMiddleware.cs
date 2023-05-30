@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using crypto_bank.Domain.Validation;
 using crypto_bank.Infrastructure.Features.Auth.Exceptions;
 using crypto_bank.Infrastructure.Features.Users.Exceptions;
 using crypto_bank.WebAPI.Errors;
@@ -25,11 +24,6 @@ public class ExceptionHandlerMiddleware : IMiddleware
         try
         {
             await next(context);
-        }
-        catch (DomainModelValidationException domainModelValidationException)
-        {
-            _logger.LogInformation(domainModelValidationException, "Domain model validation failed");
-            problemDetails = CreateProblemDetails(domainModelValidationException, StatusCodes.Status409Conflict);
         }
         catch (ApiModelValidationException apiModelValidationException)
         {
@@ -71,6 +65,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
             return;
 
         context.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status500InternalServerError;
+        //todo: use correct json serializer. What if we want to use NewtonsoftJson? 
         await context.Response.WriteAsJsonAsync(problemDetails);
     }
 

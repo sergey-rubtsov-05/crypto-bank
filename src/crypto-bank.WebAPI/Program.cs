@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using crypto_bank.Common;
 using crypto_bank.Database;
-using crypto_bank.Domain;
 using crypto_bank.Domain.Authorization;
 using crypto_bank.Infrastructure;
 using crypto_bank.Infrastructure.Features.Auth.Options;
@@ -62,7 +61,6 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddCommon();
 builder.Services.AddDatabase();
-builder.Services.AddDomain();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAccounts(builder.Configuration);
@@ -83,4 +81,3 @@ app.Run();
 //TODO Refactorings:
 //TODO 1. Get rid of the project Infrastructure and move its content to the project WebAPI
 //TODO 2. Use the same structure in features
-//TODO 3. Get rid of validators in Domain project
