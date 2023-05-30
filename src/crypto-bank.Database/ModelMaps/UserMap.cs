@@ -1,7 +1,7 @@
-using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace crypto_bank.Database.Features.Users;
+namespace crypto_bank.Database.ModelMaps;
 
 public static class UserMap
 {

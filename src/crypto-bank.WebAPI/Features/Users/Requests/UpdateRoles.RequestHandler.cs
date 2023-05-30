@@ -1,5 +1,5 @@
 using crypto_bank.Database;
-using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Domain.Models;
 using JetBrains.Annotations;
 using MediatR;
 

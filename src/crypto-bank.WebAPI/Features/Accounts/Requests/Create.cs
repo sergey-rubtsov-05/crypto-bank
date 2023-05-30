@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using crypto_bank.Common;
 using crypto_bank.Database;
-using crypto_bank.Domain.Features.Accounts.Models;
+using crypto_bank.Domain.Models;
 using crypto_bank.WebAPI.Common.Errors.Exceptions;
 using crypto_bank.WebAPI.Common.Validation;
 using crypto_bank.WebAPI.Features.Accounts.Errors;

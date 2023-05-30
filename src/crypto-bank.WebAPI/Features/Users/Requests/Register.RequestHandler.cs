@@ -1,7 +1,7 @@
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Authorization;
-using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Domain.Models;
 using crypto_bank.WebAPI.Common.Errors.Exceptions;
 using crypto_bank.WebAPI.Common.Services;
 using crypto_bank.WebAPI.Features.Users.Errors;

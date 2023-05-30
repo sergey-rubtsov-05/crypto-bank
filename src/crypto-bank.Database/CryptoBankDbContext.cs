@@ -1,7 +1,5 @@
-using crypto_bank.Database.Features.Accounts;
-using crypto_bank.Database.Features.Users;
-using crypto_bank.Domain.Features.Accounts.Models;
-using crypto_bank.Domain.Features.Users.Models;
+using crypto_bank.Database.ModelMaps;
+using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace crypto_bank.Database;

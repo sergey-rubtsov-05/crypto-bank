@@ -1,6 +1,4 @@
-using crypto_bank.Domain.Features.Users.Models;
-
-namespace crypto_bank.Domain.Features.Accounts.Models;
+namespace crypto_bank.Domain.Models;
 
 public class Account
 {

@@ -1,7 +1,7 @@
-using crypto_bank.Domain.Features.Accounts.Models;
+using crypto_bank.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace crypto_bank.Database.Features.Accounts;
+namespace crypto_bank.Database.ModelMaps;
 
 public static class AccountMap
 {
