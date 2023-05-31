@@ -76,6 +76,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-//TODO Refactorings:
-//TODO 1. Use the same structure in features
