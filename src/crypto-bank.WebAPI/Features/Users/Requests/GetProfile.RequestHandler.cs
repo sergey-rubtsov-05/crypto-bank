@@ -26,7 +26,7 @@ public partial class GetProfile
             var userModel = await _dbContext.Users
                 .Where(user => user.Id == userId)
                 .Select(user => new UserModel(user.Id, user.Email, user.BirthDate, user.RegisteredAt, user.Roles))
-                .FirstAsync(cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
             return new Response(userModel);
         }
