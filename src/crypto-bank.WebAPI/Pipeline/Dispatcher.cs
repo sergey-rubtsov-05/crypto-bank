@@ -4,26 +4,29 @@ namespace crypto_bank.WebAPI.Pipeline;
 
 public class Dispatcher
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public Dispatcher(IServiceScopeFactory serviceScopeFactory)
+    public Dispatcher(IHttpContextAccessor httpContextAccessor)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<TResponse> Dispatch<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken)
     {
-        // todo: question: why not use the same scope from current request?
-        await using var scope = _serviceScopeFactory.CreateAsyncScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        return await mediator.Send(request, cancellationToken);
+        return await GetMediator().Send(request, cancellationToken);
     }
 
     public async Task Dispatch(IRequest request, CancellationToken cancellationToken)
     {
-        // todo: question: why not use the same scope from current request?
-        await using var scope = _serviceScopeFactory.CreateAsyncScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        await mediator.Send(request, cancellationToken);
+        await GetMediator().Send(request, cancellationToken);
+    }
+
+    private IMediator GetMediator()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+            throw new InvalidOperationException("HttpContext is null.");
+
+        return httpContext.RequestServices.GetRequiredService<IMediator>();
     }
 }

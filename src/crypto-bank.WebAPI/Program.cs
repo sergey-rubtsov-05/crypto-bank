@@ -18,8 +18,6 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddConsole());
-
 builder.Services.AddMediatR(cfg => cfg
     .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
     .AddOpenBehavior(typeof(ValidationBehavior<,>)));

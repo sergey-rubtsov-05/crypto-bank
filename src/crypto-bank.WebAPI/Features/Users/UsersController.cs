@@ -39,7 +39,6 @@ public class UsersController : Controller
     {
         await _dispatcher.Dispatch(request, cancellationToken);
 
-        //todo: question: is it ok to use IActionResult here? Or should we use some kind of special response?
         return new NoContentResult();
     }
 }
