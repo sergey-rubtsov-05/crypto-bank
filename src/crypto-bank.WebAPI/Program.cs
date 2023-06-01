@@ -59,7 +59,7 @@ builder.Services.AddAuthorization(options =>
 
 //TODO Think about using Enhanced.DependencyInjection
 builder.Services.AddCommonProject();
-builder.Services.AddDatabaseProject();
+builder.Services.AddDatabaseProject(builder.Configuration);
 
 builder.Services.AddCommon();
 builder.Services.AddAccounts(builder.Configuration);
