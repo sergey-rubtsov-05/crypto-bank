@@ -7,6 +7,7 @@ using crypto_bank.Domain.Authorization;
 using crypto_bank.WebAPI;
 using crypto_bank.WebAPI.Authorization;
 using crypto_bank.WebAPI.Common;
+using crypto_bank.WebAPI.Common.Validation;
 using crypto_bank.WebAPI.Features.Accounts.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.DependencyRegistration;
 using crypto_bank.WebAPI.Features.Auth.Options;
@@ -58,6 +59,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(PolicyName.AnalystRole, policy => policy.RequireRole(Role.Analyst.ToString()));
 });
 
+//TODO Think about using Enhanced.DependencyInjection
 builder.Services.AddCommonProject();
 builder.Services.AddDatabaseProject();
 
@@ -65,6 +67,8 @@ builder.Services.AddCommon();
 builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddUsers(builder.Configuration);
+
+builder.Services.EnsureValidatorsAreRegistered<Program>();
 
 var app = builder.Build();
 
@@ -76,3 +80,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//TODO Rename solution to CryptoBank
