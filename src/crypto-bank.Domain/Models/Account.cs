@@ -1,6 +1,6 @@
 namespace crypto_bank.Domain.Models;
 
-public class Account
+public record Account
 {
     public long Number { get; init; }
     public string Currency { get; init; } = null!;

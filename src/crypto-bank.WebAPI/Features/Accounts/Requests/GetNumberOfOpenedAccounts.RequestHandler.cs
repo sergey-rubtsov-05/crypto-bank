@@ -19,11 +19,20 @@ public partial class GetNumberOfOpenedAccounts
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var numberOfAccounts = await _dbContext.Accounts
-                .Where(account => account.OpenedAt >= request.Begin && account.OpenedAt <= request.End)
-                .CountAsync(cancellationToken);
+            //TODO BUG? If we use IQueryable.GroupBy() we get all days grouped in one group (as the min date in DB)
+            // It will be a problem when we will have a lot of accounts and we want to group them by date
+            var accounts = await _dbContext.Accounts
+                .Select(account => new { account.Number, OpenedAtDate = DateOnly.FromDateTime(account.OpenedAt.Date) })
+                .Where(account => account.OpenedAtDate >= request.BeginDate && account.OpenedAtDate <= request.EndDate)
+                .ToArrayAsync(cancellationToken);
 
-            return new Response(numberOfAccounts);
+            var report = accounts
+                .GroupBy(account => account.OpenedAtDate)
+                .ToDictionary(
+                    groupedAccounts => groupedAccounts.Key,
+                    groupedAccounts => groupedAccounts.Count());
+
+            return new Response(report);
         }
     }
 }
