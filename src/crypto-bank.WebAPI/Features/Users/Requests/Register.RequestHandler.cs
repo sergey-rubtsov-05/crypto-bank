@@ -37,12 +37,16 @@ public partial class Register
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var user = await Register(request.Email, request.Password, request.BirthDate);
+            var user = await Register(request.Email, request.Password, request.BirthDate, cancellationToken);
 
             return new Response(user.Id);
         }
 
-        private async Task<User> Register(string email, string password, DateOnly? birthDate = null)
+        private async Task<User> Register(
+            string email,
+            string password,
+            DateOnly? birthDate,
+            CancellationToken cancellationToken)
         {
             var salt = Guid.NewGuid().ToString();
             var passwordHash = _passwordHasher.Hash(password, salt);
@@ -51,10 +55,10 @@ public partial class Register
 
             var user = new User(email, passwordHash, salt, birthDate, _clock.UtcNow, roles);
 
-            await ValidateUserExistingAndThrow(email);
+            await ValidateUserExistingAndThrow(email, cancellationToken);
 
-            var entityEntry = await _dbContext.Users.AddAsync(user);
-            await _dbContext.SaveChangesAsync();
+            var entityEntry = await _dbContext.Users.AddAsync(user, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             return entityEntry.Entity;
         }
@@ -76,9 +80,9 @@ public partial class Register
             return new[] { Role.User };
         }
 
-        private async Task ValidateUserExistingAndThrow(string email)
+        private async Task ValidateUserExistingAndThrow(string email, CancellationToken cancellationToken)
         {
-            var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email));
+            var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email), cancellationToken);
             if (isExist)
                 throw new LogicConflictException(UsersLogicConflictError.EmailAlreadyUse);
         }
