@@ -80,7 +80,7 @@ public partial class Register
         {
             var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email));
             if (isExist)
-                throw new LogicConflictException(RegisterUserLogicConflictError.AlreadyExists);
+                throw new LogicConflictException(UsersLogicConflictError.EmailAlreadyUse);
         }
     }
 }

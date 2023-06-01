@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using crypto_bank.Database;
+using crypto_bank.WebAPI.Common.Errors.Exceptions;
+using crypto_bank.WebAPI.Features.Users.Errors;
 using crypto_bank.WebAPI.Features.Users.Models;
 using JetBrains.Annotations;
 using MediatR;
@@ -27,6 +29,9 @@ public partial class GetProfile
                 .Where(user => user.Id == userId)
                 .Select(user => new UserModel(user.Id, user.Email, user.BirthDate, user.RegisteredAt, user.Roles))
                 .SingleOrDefaultAsync(cancellationToken);
+
+            if (userModel is null)
+                throw new LogicConflictException(UsersLogicConflictError.UserNotFound);
 
             return new Response(userModel);
         }
