@@ -13,7 +13,6 @@ public static class UserMap
         userEntityBuilder.Property(user => user.Id).HasColumnName("id").IsRequired().UseIdentityAlwaysColumn();
         userEntityBuilder.Property(user => user.Email).HasColumnName("email").IsRequired();
         userEntityBuilder.Property(user => user.PasswordHash).HasColumnName("password_hash").IsRequired();
-        userEntityBuilder.Property(user => user.Salt).HasColumnName("salt").IsRequired();
         userEntityBuilder.Property(user => user.BirthDate).HasColumnName("birth_date");
         userEntityBuilder.Property(user => user.RegisteredAt).HasColumnName("registered_at").IsRequired();
         userEntityBuilder.Property(user => user.Roles).HasColumnName("roles").IsRequired();

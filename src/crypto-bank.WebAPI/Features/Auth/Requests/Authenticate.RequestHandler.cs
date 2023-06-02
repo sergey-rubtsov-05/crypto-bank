@@ -35,15 +35,13 @@ public partial class Authenticate
         {
             var userAuthenticateInfo = await _dbContext.Users
                 .Where(user => user.Email.Equals(email))
-                .Select(user => new { user.Id, user.PasswordHash, user.Salt, user.Roles })
+                .Select(user => new { user.Id, user.PasswordHash, user.Roles })
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (userAuthenticateInfo is null)
                 throw new AuthenticationException("Couldn't get the user");
 
-            var passwordHash = _passwordHasher.Hash(password, userAuthenticateInfo.Salt);
-
-            if (!userAuthenticateInfo.PasswordHash.Equals(passwordHash, StringComparison.Ordinal))
+            if (!_passwordHasher.Verify(userAuthenticateInfo.PasswordHash, password))
                 throw new AuthenticationException("Invalid password");
 
             return _tokenService.CreateAccessToken(userAuthenticateInfo.Id, userAuthenticateInfo.Roles);

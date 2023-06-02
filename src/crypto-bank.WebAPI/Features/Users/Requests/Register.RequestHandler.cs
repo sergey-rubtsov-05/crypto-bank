@@ -53,7 +53,7 @@ public partial class Register
 
             var roles = await DetermineRoles(email);
 
-            var user = new User(email, passwordHash, salt, birthDate, _clock.UtcNow, roles);
+            var user = new User(email, passwordHash, birthDate, _clock.UtcNow, roles);
 
             await ValidateUserExistingAndThrow(email, cancellationToken);
 
