@@ -61,7 +61,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddCommonProject();
 builder.Services.AddDatabaseProject(builder.Configuration);
 
-builder.Services.AddCommon();
+builder.Services.AddCommon(builder.Configuration);
 builder.Services.AddAccounts(builder.Configuration);
 builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddUsers(builder.Configuration);

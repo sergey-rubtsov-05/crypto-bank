@@ -1,15 +1,18 @@
 using System.Text;
 using Isopoh.Cryptography.Argon2;
+using Microsoft.Extensions.Options;
 
 namespace crypto_bank.WebAPI.Common.Services;
 
-internal class PasswordHasher : IPasswordHasher
+internal class Argon2PasswordHasher : IPasswordHasher
 {
     private readonly Encoding _encoding;
+    private readonly Argon2ConfigOptions _options;
 
-    public PasswordHasher()
+    public Argon2PasswordHasher(IOptions<Argon2ConfigOptions> options)
     {
         _encoding = Encoding.UTF8;
+        _options = options.Value;
     }
 
     public string Hash(string password, string salt)
@@ -18,11 +21,11 @@ internal class PasswordHasher : IPasswordHasher
         {
             Salt = _encoding.GetBytes(salt),
             Password = _encoding.GetBytes(password),
-            TimeCost = 3,
-            MemoryCost = 8192,
-            Threads = 1,
-            Lanes = 1,
-            HashLength = 32,
+            TimeCost = _options.TimeCost,
+            MemoryCost = _options.MemoryCostInMb * 1024,
+            Threads = _options.Threads,
+            Lanes = _options.Lanes,
+            HashLength = _options.HashLengthInBytes,
             Version = Argon2Version.Nineteen,
         };
 
