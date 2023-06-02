@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using Isopoh.Cryptography.Argon2;
 using Microsoft.Extensions.Options;
@@ -15,11 +16,13 @@ internal class Argon2PasswordHasher : IPasswordHasher
         _options = options.Value;
     }
 
-    public string Hash(string password, string salt)
+    public string Hash(string password)
     {
+        var saltInBytes = RandomNumberGenerator.GetBytes(32);
+
         var config = new Argon2Config
         {
-            Salt = _encoding.GetBytes(salt),
+            Salt = saltInBytes,
             Password = _encoding.GetBytes(password),
             TimeCost = _options.TimeCost,
             MemoryCost = _options.MemoryCostInMb * 1024,

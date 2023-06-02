@@ -48,8 +48,7 @@ public partial class Register
             DateOnly? birthDate,
             CancellationToken cancellationToken)
         {
-            var salt = Guid.NewGuid().ToString();
-            var passwordHash = _passwordHasher.Hash(password, salt);
+            var passwordHash = _passwordHasher.Hash(password);
 
             var roles = await DetermineRoles(email);
 
