@@ -28,6 +28,7 @@ public partial class GetNumberOfOpenedAccounts
 
             var report = accounts
                 .GroupBy(account => account.OpenedAtDate)
+                .OrderBy(group => group.Key)
                 .ToDictionary(
                     groupedAccounts => groupedAccounts.Key,
                     groupedAccounts => groupedAccounts.Count());
