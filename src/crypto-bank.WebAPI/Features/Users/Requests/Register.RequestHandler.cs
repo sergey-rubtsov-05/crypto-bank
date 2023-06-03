@@ -56,10 +56,10 @@ public partial class Register
 
             await ValidateUserExistingAndThrow(email, cancellationToken);
 
-            var entityEntry = await _dbContext.Users.AddAsync(user, cancellationToken);
+            await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return entityEntry.Entity;
+            return user;
         }
 
         private async Task<Role[]> DetermineRoles(string email)

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Models;
@@ -20,7 +21,7 @@ public partial class Create
         private readonly IClock _clock;
         private readonly CryptoBankDbContext _dbContext;
         private readonly HttpContext? _httpContext;
-        private readonly IOptions<AccountsOptions> _options;
+        private readonly AccountsOptions _options;
 
         public RequestHandler(
             IClock clock,
@@ -30,7 +31,7 @@ public partial class Create
         {
             _clock = clock;
             _dbContext = dbContext;
-            _options = options;
+            _options = options.Value;
             _httpContext = httpContextAccessor.HttpContext;
         }
 
@@ -40,18 +41,41 @@ public partial class Create
             var nameIdentifierValue = _httpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userId = string.IsNullOrWhiteSpace(nameIdentifierValue) ? 0 : int.Parse(nameIdentifierValue);
 
-            var currencyNumberOfAccounts =
+            await EnsureCanCreateAccount(userId, cancellationToken);
+
+            var account = await AddAccount(userId, request.Currency, cancellationToken);
+
+            return new Response(account.Number);
+        }
+
+        private async Task EnsureCanCreateAccount(int userId, CancellationToken cancellationToken)
+        {
+            var currentNumberOfAccounts =
                 await _dbContext.Accounts.CountAsync(account => account.UserId == userId, cancellationToken);
 
-            if (currencyNumberOfAccounts >= _options.Value.MaximumAccountsPerUser)
+            if (currentNumberOfAccounts >= _options.MaximumAccountsPerUser)
                 throw new LogicConflictException(AccountsLogicConflictErrors.MaximumNumberOfAccountsReached);
+        }
 
-            var account = new Account { UserId = userId, Currency = request.Currency, OpenedAt = _clock.UtcNow };
+        private async Task<Account> AddAccount(int userId, string currency, CancellationToken cancellationToken)
+        {
+            var accountNumber = GenerateRandomAccountNumber();
+
+            var account = new Account(accountNumber)
+            {
+                UserId = userId, Currency = currency, OpenedAt = _clock.UtcNow,
+            };
 
             await _dbContext.Accounts.AddAsync(account, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
+            return account;
+        }
 
-            return new Response(account.Number);
+        private string GenerateRandomAccountNumber()
+        {
+            var randomAccountId = RandomNumberGenerator.GetInt32(1, 1_000_000_000);
+            var accountNumber = $"{_options.AccountNumberPrefix}{randomAccountId:D9}";
+            return accountNumber;
         }
     }
 }

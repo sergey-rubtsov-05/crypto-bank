@@ -8,7 +8,7 @@ public partial class Create
 {
     public record Request(string Currency) : IRequest<Response>;
 
-    public record Response(long AccountNumber);
+    public record Response(string AccountNumber);
 
     public class RequestValidator : ApiModelValidator<Request>
     {

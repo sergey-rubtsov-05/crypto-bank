@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using crypto_bank.Database;
@@ -11,9 +12,11 @@ using crypto_bank.Database;
 namespace crypto_bank.Database.Migrations
 {
     [DbContext(typeof(CryptoBankDbContext))]
-    partial class CryptoBankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230603095817_AccountNumberAsStringAndGenerateByCode")]
+    partial class AccountNumberAsStringAndGenerateByCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
