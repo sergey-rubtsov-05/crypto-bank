@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using crypto_bank.Database;
+using crypto_bank.WebAPI.Common.Services;
 using crypto_bank.WebAPI.Features.Accounts.Models;
 using JetBrains.Annotations;
 using MediatR;
@@ -12,17 +12,18 @@ public partial class GetList
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
+        private readonly CurrentAuthInfoSource _currentAuthInfoSource;
         private readonly CryptoBankDbContext _dbContext;
 
-        public RequestHandler(CryptoBankDbContext dbContext)
+        public RequestHandler(CryptoBankDbContext dbContext, CurrentAuthInfoSource currentAuthInfoSource)
         {
             _dbContext = dbContext;
+            _currentAuthInfoSource = currentAuthInfoSource;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            //TODO refactor getting user id
-            var userId = int.Parse(request.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userId = _currentAuthInfoSource.GetUserId();
 
             var accounts = await _dbContext.Accounts
                 .Where(account => account.UserId == userId)

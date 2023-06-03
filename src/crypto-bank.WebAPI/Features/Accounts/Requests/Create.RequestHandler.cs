@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using System.Security.Cryptography;
 using crypto_bank.Common;
 using crypto_bank.Database;
 using crypto_bank.Domain.Models;
 using crypto_bank.WebAPI.Common.Errors.Exceptions;
+using crypto_bank.WebAPI.Common.Services;
 using crypto_bank.WebAPI.Features.Accounts.Errors;
 using crypto_bank.WebAPI.Features.Accounts.Options;
 using JetBrains.Annotations;
@@ -19,27 +19,25 @@ public partial class Create
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly IClock _clock;
+        private readonly CurrentAuthInfoSource _currentAuthInfoSource;
         private readonly CryptoBankDbContext _dbContext;
-        private readonly HttpContext? _httpContext;
         private readonly AccountsOptions _options;
 
         public RequestHandler(
             IClock clock,
             CryptoBankDbContext dbContext,
-            IHttpContextAccessor httpContextAccessor,
+            CurrentAuthInfoSource currentAuthInfoSource,
             IOptions<AccountsOptions> options)
         {
             _clock = clock;
             _dbContext = dbContext;
+            _currentAuthInfoSource = currentAuthInfoSource;
             _options = options.Value;
-            _httpContext = httpContextAccessor.HttpContext;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            //TODO refactor getting user id
-            var nameIdentifierValue = _httpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userId = string.IsNullOrWhiteSpace(nameIdentifierValue) ? 0 : int.Parse(nameIdentifierValue);
+            var userId = _currentAuthInfoSource.GetUserId();
 
             await EnsureCanCreateAccount(userId, cancellationToken);
 

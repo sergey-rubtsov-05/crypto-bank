@@ -9,6 +9,8 @@ public static class CommonServiceCollectionExtensions
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
         services.Configure<Argon2ConfigOptions>(configuration.GetSection("Argon2ConfigOptions"));
 
+        services.AddScoped<CurrentAuthInfoSource>();
+
         return services;
     }
 }

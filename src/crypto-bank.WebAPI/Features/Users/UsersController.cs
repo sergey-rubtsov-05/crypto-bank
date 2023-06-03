@@ -28,7 +28,7 @@ public class UsersController : Controller
     [HttpGet("profile")]
     public async Task<GetProfile.Response> GetProfile(CancellationToken cancellationToken)
     {
-        return await _dispatcher.Dispatch(new GetProfile.Request(User), cancellationToken);
+        return await _dispatcher.Dispatch(new GetProfile.Request(), cancellationToken);
     }
 
     [Authorize(Policy = PolicyName.AdministratorRole)]

@@ -28,7 +28,7 @@ public class AccountsController : Controller
     [HttpGet("list")]
     public async Task<GetList.Response> GetList(CancellationToken cancellationToken)
     {
-        return await _dispatcher.Dispatch(new GetList.Request(User), cancellationToken);
+        return await _dispatcher.Dispatch(new GetList.Request(), cancellationToken);
     }
 
     [Authorize(Policy = PolicyName.AnalystRole)]

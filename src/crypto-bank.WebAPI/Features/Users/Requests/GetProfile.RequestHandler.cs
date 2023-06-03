@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using crypto_bank.Database;
 using crypto_bank.WebAPI.Common.Errors.Exceptions;
+using crypto_bank.WebAPI.Common.Services;
 using crypto_bank.WebAPI.Features.Users.Errors;
 using crypto_bank.WebAPI.Features.Users.Models;
 using JetBrains.Annotations;
@@ -14,17 +14,18 @@ public partial class GetProfile
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
+        private readonly CurrentAuthInfoSource _currentAuthInfoSource;
         private readonly CryptoBankDbContext _dbContext;
 
-        public RequestHandler(CryptoBankDbContext dbContext)
+        public RequestHandler(CryptoBankDbContext dbContext, CurrentAuthInfoSource currentAuthInfoSource)
         {
             _dbContext = dbContext;
+            _currentAuthInfoSource = currentAuthInfoSource;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var nameIdentifierValue = request.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userId = string.IsNullOrWhiteSpace(nameIdentifierValue) ? 0 : int.Parse(nameIdentifierValue);
+            var userId = _currentAuthInfoSource.GetUserId();
             var userModel = await _dbContext.Users
                 .Where(user => user.Id == userId)
                 .Select(user => new UserModel(user.Id, user.Email, user.BirthDate, user.RegisteredAt, user.Roles))
