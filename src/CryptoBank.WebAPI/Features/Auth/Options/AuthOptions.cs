@@ -3,6 +3,7 @@ namespace CryptoBank.WebAPI.Features.Auth.Options;
 public record AuthOptions
 {
     public JwtOptions Jwt { get; init; } = default!;
+    public TimeSpan RefreshTokenLifeTime { get; init; }
 }
 
 public record JwtOptions

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using CryptoBank.Common;
 using CryptoBank.Domain.Authorization;
@@ -42,5 +43,10 @@ public class TokenService
         var accessToken = _jsonWebTokenHandler.CreateToken(securityTokenDescriptor);
 
         return accessToken;
+    }
+
+    public string CreateRefreshToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
 }

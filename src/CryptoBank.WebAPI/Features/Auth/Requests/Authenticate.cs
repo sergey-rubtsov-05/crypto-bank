@@ -8,7 +8,7 @@ public partial class Authenticate
 {
     public record Request(string Email, string Password) : IRequest<Response>;
 
-    public record Response(string AccessToken);
+    public record Response(string AccessToken, string RefreshToken);
 
     public class RequestValidator : ApiModelValidator<Request>
     {
