@@ -14,7 +14,7 @@ public partial class Authenticate
     {
         public RequestValidator()
         {
-            RuleFor(request => request.Email).NotEmpty();
+            RuleFor(request => request.Email).NotEmpty(); //todo add status code
             RuleFor(request => request.Password).NotEmpty();
         }
     }
