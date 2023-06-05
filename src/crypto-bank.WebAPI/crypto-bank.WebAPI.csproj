@@ -8,13 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.5.2"/>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0"/>
+    <PackageReference Include="FluentValidation" Version="11.5.2" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.2" />
+    <PackageReference Include="Isopoh.Cryptography.Argon2" Version="1.1.12" />
+    <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+    <PackageReference Include="MediatR" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\crypto-bank.Database\crypto-bank.Database.csproj"/>
-    <ProjectReference Include="..\crypto-bank.Infrastructure\crypto-bank.Infrastructure.csproj"/>
+    <ProjectReference Include="..\crypto-bank.Common\crypto-bank.Common.csproj" />
+    <ProjectReference Include="..\crypto-bank.Database\crypto-bank.Database.csproj" />
   </ItemGroup>
 
 </Project>

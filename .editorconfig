@@ -9,10 +9,12 @@ indent_style = space
 # XML project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
 indent_size = 2
+ij_xml_space_inside_empty_tag = true
 
 # XML config files
 [*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
 indent_size = 2
+ij_xml_space_inside_empty_tag = true
 
 # Code files
 [*.{cs,csx,vb,vbx}]
@@ -126,6 +128,7 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
 # ReSharper properties
+resharper_blank_lines_after_multiline_statements = 1
 resharper_braces_for_ifelse = not_required_for_both
 resharper_braces_redundant = true
 resharper_csharp_wrap_after_declaration_lpar = true
