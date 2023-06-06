@@ -1,6 +1,6 @@
 namespace CryptoBank.WebAPI.Features.Users.Errors;
 
-internal static class UsersLogicConflictError
+internal static class UsersLogicConflictErrorCode
 {
     private const string Prefix = "users_";
 

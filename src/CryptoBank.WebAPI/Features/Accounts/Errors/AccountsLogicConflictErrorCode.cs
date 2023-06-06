@@ -1,6 +1,6 @@
 namespace CryptoBank.WebAPI.Features.Accounts.Errors;
 
-public static class AccountsLogicConflictErrors
+public static class AccountsLogicConflictErrorCode
 {
     private const string Prefix = "accounts_";
 

@@ -24,4 +24,13 @@ public class AuthController : Controller
     {
         return await _dispatcher.Dispatch(request, cancellationToken);
     }
+
+    [AllowAnonymous]
+    [HttpPost("refreshToken")]
+    public async Task<RefreshToken.Response> RefreshToken(
+        RefreshToken.Request request,
+        CancellationToken cancellationToken)
+    {
+        return await _dispatcher.Dispatch(request, cancellationToken);
+    }
 }

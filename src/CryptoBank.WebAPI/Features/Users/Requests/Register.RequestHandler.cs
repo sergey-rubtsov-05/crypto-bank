@@ -83,7 +83,7 @@ public partial class Register
         {
             var isExist = await _dbContext.Users.AnyAsync(user => user.Email.Equals(email), cancellationToken);
             if (isExist)
-                throw new LogicConflictException(UsersLogicConflictError.EmailAlreadyUse);
+                throw new LogicConflictException(UsersLogicConflictErrorCode.EmailAlreadyUse);
         }
     }
 }
