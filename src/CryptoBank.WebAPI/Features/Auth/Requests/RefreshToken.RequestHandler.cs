@@ -1,10 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using CryptoBank.Common;
 using CryptoBank.Database;
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Features.Auth.Exceptions;
 using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Services;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -13,6 +13,7 @@ namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
 public partial class RefreshToken
 {
+    [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly AuthOptions _authOptions;
@@ -79,7 +80,9 @@ public partial class RefreshToken
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task Verify([NotNull] Token? token, CancellationToken cancellationToken)
+        private async Task Verify(
+            [System.Diagnostics.CodeAnalysis.NotNull] Token? token,
+            CancellationToken cancellationToken)
         {
             if (token == null)
                 throw new AuthenticationException("Could not find the refresh token");

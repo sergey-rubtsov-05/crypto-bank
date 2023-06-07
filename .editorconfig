@@ -134,6 +134,7 @@ resharper_braces_redundant = true
 resharper_csharp_wrap_after_declaration_lpar = true
 resharper_csharp_wrap_parameters_style = chop_if_long
 resharper_keep_existing_embedded_arrangement = false
+resharper_max_attribute_length_for_same_line = 50
 resharper_place_constructor_initializer_on_same_line = false
 resharper_place_simple_embedded_statement_on_same_line = false
 resharper_trailing_comma_in_multiline_lists = true

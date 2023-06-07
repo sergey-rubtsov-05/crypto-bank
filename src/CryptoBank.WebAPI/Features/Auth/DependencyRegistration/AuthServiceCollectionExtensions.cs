@@ -11,6 +11,7 @@ public static class AuthServiceCollectionExtensions
     {
         services.AddScoped<IValidator<Authenticate.Request>, Authenticate.RequestValidator>();
         services.AddScoped<IValidator<RefreshToken.Request>, RefreshToken.RequestValidator>();
+        services.AddScoped<IValidator<RevokeToken.Request>, RevokeToken.RequestValidator>();
 
         services.AddScoped<TokenService>();
         services.Configure<AuthOptions>(configuration.GetSection("Features:Auth"));

@@ -1,3 +1,4 @@
+using CryptoBank.WebAPI.Authorization;
 using CryptoBank.WebAPI.Features.Auth.Requests;
 using CryptoBank.WebAPI.Pipeline;
 using Microsoft.AspNetCore.Authorization;
@@ -32,5 +33,14 @@ public class AuthController : Controller
         CancellationToken cancellationToken)
     {
         return await _dispatcher.Dispatch(request, cancellationToken);
+    }
+
+    [Authorize(Policy = PolicyName.AdministratorRole)]
+    [HttpPost("revokeRefreshToken")]
+    public async Task<IActionResult> RevokeToken(RevokeToken.Request request, CancellationToken cancellationToken)
+    {
+        await _dispatcher.Dispatch(request, cancellationToken);
+
+        return NoContent();
     }
 }
