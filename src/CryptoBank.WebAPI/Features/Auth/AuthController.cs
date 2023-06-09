@@ -10,6 +10,7 @@ namespace CryptoBank.WebAPI.Features.Auth;
 [Route("/auth")]
 public class AuthController : Controller
 {
+    private const string RefreshTokenCookieKey = "refresh-token";
     private readonly Dispatcher _dispatcher;
 
     public AuthController(Dispatcher dispatcher)
@@ -23,16 +24,25 @@ public class AuthController : Controller
         Authenticate.Request request,
         CancellationToken cancellationToken)
     {
-        return await _dispatcher.Dispatch(request, cancellationToken);
+        var response = await _dispatcher.Dispatch(request, cancellationToken);
+
+        SetRefreshTokenToCookies(response.RefreshToken);
+
+        return response;
     }
 
     [AllowAnonymous]
     [HttpPost("refreshToken")]
-    public async Task<RefreshToken.Response> RefreshToken(
-        RefreshToken.Request request,
-        CancellationToken cancellationToken)
+    public async Task<RefreshToken.Response> RefreshToken(CancellationToken cancellationToken)
     {
-        return await _dispatcher.Dispatch(request, cancellationToken);
+        //todo: question: is there better way to load value from cookies to request model
+        var request = new RefreshToken.Request(GetRefreshTokenFromCookies());
+
+        var response = await _dispatcher.Dispatch(request, cancellationToken);
+
+        SetRefreshTokenToCookies(response.RefreshToken);
+
+        return response;
     }
 
     [Authorize(Policy = PolicyName.AdministratorRole)]
@@ -42,5 +52,24 @@ public class AuthController : Controller
         await _dispatcher.Dispatch(request, cancellationToken);
 
         return NoContent();
+    }
+
+    private string? GetRefreshTokenFromCookies()
+    {
+        var refreshToken = HttpContext.Request.Cookies[RefreshTokenCookieKey];
+        return refreshToken;
+    }
+
+    private void SetRefreshTokenToCookies(string refreshToken)
+    {
+        //todo: question is there better to set cookie in response
+        HttpContext.Response.Cookies.Append(
+            RefreshTokenCookieKey,
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true, Secure = true, SameSite = SameSiteMode.Strict,
+                // todo: question: do I need to set expires for cookie, because token has it?
+            });
     }
 }
