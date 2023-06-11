@@ -4,6 +4,7 @@ public record AuthOptions
 {
     public JwtOptions Jwt { get; init; } = default!;
     public TimeSpan RefreshTokenLifeTime { get; init; }
+    public TimeSpan RefreshTokenArchiveTime { get; init; }
 }
 
 public record JwtOptions

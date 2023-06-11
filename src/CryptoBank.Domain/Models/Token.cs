@@ -1,6 +1,6 @@
 namespace CryptoBank.Domain.Models;
 
-public record Token(string RefreshToken, int UserId, DateTimeOffset ExpirationTime)
+public record Token(string RefreshToken, int UserId, DateTimeOffset CreatedAt, DateTimeOffset ExpirationTime)
 {
     public User User { get; init; } = null!;
     public bool IsRevoked { get; init; }

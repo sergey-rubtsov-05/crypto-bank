@@ -86,9 +86,11 @@ public partial class Authenticate
 
         private async Task Store(string refreshToken, int userId, CancellationToken cancellationToken)
         {
-            var refreshTokenExpirationTime = _clock.UtcNow.Add(_authOptions.RefreshTokenLifeTime);
+            //todo: DRY problem, I have the same code in RefreshToken
+            var utcNow = _clock.UtcNow;
+            var refreshTokenExpirationTime = utcNow.Add(_authOptions.RefreshTokenLifeTime);
             await _dbContext.Tokens
-                .AddAsync(new Token(refreshToken, userId, refreshTokenExpirationTime), cancellationToken);
+                .AddAsync(new Token(refreshToken, userId, utcNow, refreshTokenExpirationTime), cancellationToken);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
