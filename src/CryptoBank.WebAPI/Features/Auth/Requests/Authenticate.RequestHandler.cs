@@ -1,15 +1,11 @@
-using CryptoBank.Common;
 using CryptoBank.Database;
 using CryptoBank.Domain.Authorization;
-using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Common.Services;
 using CryptoBank.WebAPI.Features.Auth.Exceptions;
-using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Services;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
@@ -18,24 +14,21 @@ public partial class Authenticate
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
-        private readonly AuthOptions _authOptions;
-        private readonly IClock _clock;
+        private readonly AuthService _authService;
         private readonly CryptoBankDbContext _dbContext;
         private readonly IPasswordHasher _passwordHasher;
         private readonly TokenService _tokenService;
 
         public RequestHandler(
+            AuthService authService,
             CryptoBankDbContext dbContext,
             TokenService tokenService,
-            IPasswordHasher passwordHasher,
-            IClock clock,
-            IOptions<AuthOptions> authOptions)
+            IPasswordHasher passwordHasher)
         {
+            _authService = authService;
             _dbContext = dbContext;
             _tokenService = tokenService;
             _passwordHasher = passwordHasher;
-            _clock = clock;
-            _authOptions = authOptions.Value;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
@@ -74,7 +67,7 @@ public partial class Authenticate
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             await RemovePrevious(userId, cancellationToken);
-            await Store(refreshToken, userId, cancellationToken);
+            await _authService.Store(refreshToken, userId, cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
         }
@@ -82,17 +75,6 @@ public partial class Authenticate
         private async Task RemovePrevious(int userId, CancellationToken cancellationToken)
         {
             await _dbContext.Tokens.Where(token => token.UserId == userId).ExecuteDeleteAsync(cancellationToken);
-        }
-
-        private async Task Store(string refreshToken, int userId, CancellationToken cancellationToken)
-        {
-            //todo: DRY problem, I have the same code in RefreshToken
-            var utcNow = _clock.UtcNow;
-            var refreshTokenExpirationTime = utcNow.Add(_authOptions.RefreshTokenLifeTime);
-            await _dbContext.Tokens
-                .AddAsync(new Token(refreshToken, userId, utcNow, refreshTokenExpirationTime), cancellationToken);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

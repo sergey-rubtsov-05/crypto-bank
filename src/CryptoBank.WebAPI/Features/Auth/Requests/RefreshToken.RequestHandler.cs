@@ -17,16 +17,19 @@ public partial class RefreshToken
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly AuthOptions _authOptions;
+        private readonly AuthService _authService;
         private readonly IClock _clock;
         private readonly CryptoBankDbContext _dbContext;
         private readonly TokenService _tokenService;
 
         public RequestHandler(
+            AuthService authService,
             CryptoBankDbContext dbContext,
             IClock clock,
             TokenService tokenService,
             IOptions<AuthOptions> authOptions)
         {
+            _authService = authService;
             _dbContext = dbContext;
             _clock = clock;
             _tokenService = tokenService;
@@ -35,22 +38,27 @@ public partial class RefreshToken
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var token = await _dbContext.Tokens.SingleOrDefaultAsync(
-                token => token.RefreshToken == request.RefreshToken, cancellationToken);
+            var currentRefreshTokenEntity = await _dbContext.Tokens.SingleOrDefaultAsync(
+                token => token.RefreshToken == request.RefreshToken,
+                cancellationToken);
 
-            await Verify(token, cancellationToken);
+            await Verify(currentRefreshTokenEntity, cancellationToken);
 
-            var (newAccessToken, newRefreshToken) = await GenerateNewPair(token, cancellationToken);
+            var (newAccessToken, newRefreshToken) = await GenerateNewPair(
+                currentRefreshTokenEntity.RefreshToken,
+                currentRefreshTokenEntity.UserId,
+                cancellationToken);
 
             return new Response(newAccessToken, newRefreshToken);
         }
 
         private async Task<(string newAccessToken, string newRefreshToken)> GenerateNewPair(
-            Token currentRefreshToken,
+            string currentRefreshToken,
+            int userId,
             CancellationToken cancellationToken)
         {
             var user = await _dbContext.Users
-                .Where(user => user.Id == currentRefreshToken.UserId)
+                .Where(user => user.Id == userId)
                 .Select(user => new { user.Id, user.Roles })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -66,44 +74,37 @@ public partial class RefreshToken
         }
 
         private async Task RemoveArchivedAndStore(
-            Token currentRefreshToken,
+            string currentRefreshToken,
             string newRefreshToken,
             int userId,
             CancellationToken cancellationToken)
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            await RemoveArchived(currentRefreshToken, cancellationToken);
-            await Store(currentRefreshToken, newRefreshToken, userId, cancellationToken);
+            await RemoveArchived(currentRefreshToken, userId, cancellationToken);
+            await _authService.Store(newRefreshToken, userId, cancellationToken);
+            await SetReplaceBy(currentRefreshToken, newRefreshToken, cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
         }
 
-        private async Task RemoveArchived(Token currentRefreshToken, CancellationToken cancellationToken)
+        private async Task RemoveArchived(string currentRefreshToken, int userId, CancellationToken cancellationToken)
         {
             await _dbContext.Tokens
-                .Where(token => token.UserId == currentRefreshToken.UserId)
-                .Where(token => token.RefreshToken != currentRefreshToken.RefreshToken)
+                .Where(token => token.UserId == userId)
+                .Where(token => token.RefreshToken != currentRefreshToken)
                 .Where(token => token.CreatedAt <= _clock.UtcNow.Add(_authOptions.RefreshTokenArchiveTime))
                 .ExecuteDeleteAsync(cancellationToken);
         }
 
-        private async Task Store(
-            Token currentRefreshTokenEntity,
+        private async Task SetReplaceBy(
+            string currentRefreshToken,
             string newRefreshToken,
-            int userId,
             CancellationToken cancellationToken)
         {
-            //todo: DRY problem, I have the same code in Authenticate
-            var utcNow = _clock.UtcNow;
-            var expirationTime = utcNow.Add(_authOptions.RefreshTokenLifeTime);
-            var newRefreshTokenEntity = new Token(newRefreshToken, userId, utcNow, expirationTime);
-            _dbContext.Tokens.Add(newRefreshTokenEntity);
-
-            //todo: question: what if a user refresh token every 5 minutes for a day, it is 288 tokens, do we need them all? 
-            currentRefreshTokenEntity.ReplacedById = newRefreshToken;
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.Tokens
+                .Where(token => token.RefreshToken == currentRefreshToken)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.ReplacedById, newRefreshToken), cancellationToken);
         }
 
         private async Task Verify(
