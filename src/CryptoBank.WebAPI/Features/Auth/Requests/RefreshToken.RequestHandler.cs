@@ -126,7 +126,6 @@ public partial class RefreshToken
 
         private async Task RevokeAllDescendantTokens(Token revokedToken, CancellationToken cancellationToken)
         {
-            //todo: question: when user successfully authenticate we remove all previous tokens of this user, so we lost all revoked tokens.
             await _dbContext.Tokens
                 .Where(token => token.UserId == revokedToken.UserId)
                 .ExecuteUpdateAsync(token => token.SetProperty(t => t.IsRevoked, true), cancellationToken);

@@ -1,11 +1,14 @@
+using CryptoBank.Common;
 using CryptoBank.Database;
 using CryptoBank.Domain.Authorization;
 using CryptoBank.WebAPI.Common.Services;
 using CryptoBank.WebAPI.Features.Auth.Exceptions;
+using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Services;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
@@ -14,18 +17,24 @@ public partial class Authenticate
     [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
+        private readonly AuthOptions _authOptions;
         private readonly AuthService _authService;
+        private readonly IClock _clock;
         private readonly CryptoBankDbContext _dbContext;
         private readonly IPasswordHasher _passwordHasher;
         private readonly TokenService _tokenService;
 
         public RequestHandler(
+            IOptions<AuthOptions> authOptions,
             AuthService authService,
+            IClock clock,
             CryptoBankDbContext dbContext,
             TokenService tokenService,
             IPasswordHasher passwordHasher)
         {
+            _authOptions = authOptions.Value;
             _authService = authService;
+            _clock = clock;
             _dbContext = dbContext;
             _tokenService = tokenService;
             _passwordHasher = passwordHasher;
@@ -74,7 +83,10 @@ public partial class Authenticate
 
         private async Task RemovePrevious(int userId, CancellationToken cancellationToken)
         {
-            await _dbContext.Tokens.Where(token => token.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+            await _dbContext.Tokens
+                .Where(token => token.UserId == userId)
+                .Where(token => token.CreatedAt <= _clock.UtcNow.Add(_authOptions.RefreshTokenArchiveTime))
+                .ExecuteDeleteAsync(cancellationToken);
         }
     }
 }
