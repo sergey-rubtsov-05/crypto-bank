@@ -32,7 +32,7 @@ public partial class GetProfile
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (userModel is null)
-                throw new LogicConflictException(UsersLogicConflictErrorCode.UserNotFound);
+                throw new ApiValidationException(UsersValidationError.UserNotFound);
 
             return new Response(userModel);
         }
