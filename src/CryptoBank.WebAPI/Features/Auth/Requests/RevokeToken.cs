@@ -15,7 +15,7 @@ public partial class RevokeToken
         {
             RuleFor(request => request.RefreshToken)
                 .NotEmpty()
-                .WithErrorCode(AuthLogicConflictErrorCode.RefreshTokenEmpty);
+                .WithError(AuthValidationError.RefreshTokenEmpty);
         }
     }
 }

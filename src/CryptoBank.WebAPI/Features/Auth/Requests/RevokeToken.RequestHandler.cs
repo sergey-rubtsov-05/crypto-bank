@@ -26,7 +26,8 @@ public partial class RevokeToken
         public async Task Handle(Request request, CancellationToken cancellationToken)
         {
             var token = await _dbContext.Tokens.SingleOrDefaultAsync(
-                token => token.RefreshToken == request.RefreshToken, cancellationToken);
+                token => token.RefreshToken == request.RefreshToken,
+                cancellationToken);
 
             Verify(token);
 
@@ -36,7 +37,7 @@ public partial class RevokeToken
         private void Verify([System.Diagnostics.CodeAnalysis.NotNull] Token? token)
         {
             if (token == null)
-                throw new LogicConflictException(AuthLogicConflictErrorCode.RefreshTokenDoesNotExist);
+                throw new ApiValidationException(AuthValidationError.RefreshTokenDoesNotExist);
 
             if (token.IsRevoked)
                 throw new LogicConflictException(AuthLogicConflictErrorCode.RefreshTokenAlreadyRevoked);

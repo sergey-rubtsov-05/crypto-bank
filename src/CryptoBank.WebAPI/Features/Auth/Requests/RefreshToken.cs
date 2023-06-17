@@ -18,7 +18,7 @@ public partial class RefreshToken
         {
             RuleFor(request => request.RefreshToken)
                 .NotEmpty()
-                .WithErrorCode(AuthLogicConflictErrorCode.RefreshTokenEmpty);
+                .WithError(AuthValidationError.RefreshTokenEmpty);
         }
     }
 }

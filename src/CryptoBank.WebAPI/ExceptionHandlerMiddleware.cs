@@ -26,6 +26,11 @@ public class ExceptionHandlerMiddleware : IMiddleware
             _logger.LogInformation(apiModelValidationException, "Api model validation failed");
             problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
         }
+        catch (ApiValidationException apiValidationException)
+        {
+            _logger.LogInformation(apiValidationException, "Api validation failed");
+            problemDetails = CreateProblemDetails(apiValidationException, StatusCodes.Status400BadRequest);
+        }
         catch (AuthenticationException authenticationException)
         {
             _logger.LogInformation(authenticationException, "Authentication failed");
@@ -75,6 +80,20 @@ public class ExceptionHandlerMiddleware : IMiddleware
             Status = httpStatusCode,
             Title = validationException.Message,
             Detail = string.Join(", ", validationFailures.Select(error => error.ErrorMessage)),
+        };
+
+        return problemDetails;
+    }
+
+    private static ProblemDetails CreateProblemDetails(
+        ApiValidationException validationException,
+        int httpStatusCode)
+    {
+        var problemDetails = new ProblemDetails
+        {
+            Status = httpStatusCode,
+            Title = "Api validation failed",
+            Extensions = { ["code"] = validationException.ErrorCode },
         };
 
         return problemDetails;

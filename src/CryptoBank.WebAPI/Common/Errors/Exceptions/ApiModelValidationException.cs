@@ -16,5 +16,5 @@ public class ApiModelValidationException : ErrorException
         Errors = errors;
     }
 
-    public IEnumerable<ValidationFailure> Errors { get; private set; }
+    public IEnumerable<ValidationFailure> Errors { get; }
 }
