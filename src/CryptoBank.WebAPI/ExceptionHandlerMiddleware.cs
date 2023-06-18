@@ -49,7 +49,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
 
             problemDetails.Extensions.Add("traceId", Activity.Current?.Id ?? context.TraceIdentifier);
 
-            problemDetails.Extensions["code"] = logicConflictException.Code;
+            problemDetails.Extensions["code"] = logicConflictException.ErrorCode;
         }
         catch (Exception exception)
         {
@@ -78,8 +78,18 @@ public class ExceptionHandlerMiddleware : IMiddleware
         var problemDetails = new ProblemDetails
         {
             Status = httpStatusCode,
-            Title = validationException.Message,
-            Detail = string.Join(", ", validationFailures.Select(error => error.ErrorMessage)),
+            Title = "Api model validation exception",
+            Detail = validationException.Message,
+            Extensions =
+            {
+                ["errors"] = validationException.Errors.Select(
+                    validationFailure => new
+                    {
+                        Field = validationFailure.PropertyName,
+                        Message = validationFailure.ErrorMessage,
+                        Code = validationFailure.ErrorCode,
+                    }),
+            },
         };
 
         return problemDetails;

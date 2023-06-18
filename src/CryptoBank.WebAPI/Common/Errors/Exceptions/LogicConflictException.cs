@@ -1,12 +1,14 @@
+using CryptoBank.WebAPI.Common.Errors.Exceptions.Base;
+
 namespace CryptoBank.WebAPI.Common.Errors.Exceptions;
 
-public class LogicConflictException : Exception
+public class LogicConflictException : ErrorException
 {
-    public LogicConflictException(string code, Exception? innerException = null)
-        : base(code, innerException)
+    public LogicConflictException(LogicConflictError error, Exception? innerException = null)
+        : base(error.Code, innerException)
     {
-        Code = code;
+        ErrorCode = error.Code;
     }
 
-    public string Code { get; }
+    public string ErrorCode { get; }
 }

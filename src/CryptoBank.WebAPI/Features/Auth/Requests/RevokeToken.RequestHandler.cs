@@ -40,10 +40,10 @@ public partial class RevokeToken
                 throw new ApiValidationException(AuthValidationError.RefreshTokenDoesNotExist);
 
             if (token.IsRevoked)
-                throw new LogicConflictException(AuthLogicConflictErrorCode.RefreshTokenAlreadyRevoked);
+                throw new LogicConflictException(AuthLogicConflictError.RefreshTokenAlreadyRevoked);
 
             if (_clock.UtcNow >= token.ExpirationTime)
-                throw new LogicConflictException(AuthLogicConflictErrorCode.RefreshTokenExpired);
+                throw new LogicConflictException(AuthLogicConflictError.RefreshTokenExpired);
         }
 
         private async Task Revoke(string refreshToken, CancellationToken cancellationToken)

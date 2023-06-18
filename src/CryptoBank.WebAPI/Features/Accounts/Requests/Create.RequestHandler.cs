@@ -52,7 +52,7 @@ public partial class Create
                 await _dbContext.Accounts.CountAsync(account => account.UserId == userId, cancellationToken);
 
             if (currentNumberOfAccounts >= _options.MaximumAccountsPerUser)
-                throw new LogicConflictException(AccountsLogicConflictErrorCode.MaximumNumberOfAccountsReached);
+                throw new LogicConflictException(AccountsLogicConflictError.MaximumNumberOfAccountsReached);
         }
 
         private async Task<Account> AddAccount(int userId, string currency, CancellationToken cancellationToken)
