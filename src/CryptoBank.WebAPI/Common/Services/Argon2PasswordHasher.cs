@@ -37,8 +37,8 @@ internal class Argon2PasswordHasher : IPasswordHasher
         return hashedPassword;
     }
 
-    public bool Verify(string encodedHash, string password)
+    public bool Verify(string hashedPassword, string providedPassword)
     {
-        return Argon2.Verify(encodedHash, _encoding.GetBytes(password));
+        return Argon2.Verify(hashedPassword, _encoding.GetBytes(providedPassword));
     }
 }

@@ -1,9 +1,14 @@
+using CryptoBank.WebAPI.Common.Errors;
+
 namespace CryptoBank.WebAPI.Features.Users.Errors;
 
-internal static class UsersLogicConflictError
+internal class UsersLogicConflictError : LogicConflictError
 {
-    private const string Prefix = "users_";
+    private const string Prefix = "users_logic_conflict_";
 
-    public const string EmailAlreadyUse = Prefix + "email_already_use";
-    public const string UserNotFound = Prefix + "user_not_found";
+    public static readonly UsersLogicConflictError EmailAlreadyUse = new(Prefix + "email_already_use");
+
+    private UsersLogicConflictError(string code) : base(code)
+    {
+    }
 }

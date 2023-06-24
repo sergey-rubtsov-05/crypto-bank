@@ -1,13 +1,14 @@
 using System.Text.Json.Serialization;
 using CryptoBank.WebAPI.Common.Validation;
+using CryptoBank.WebAPI.Features.Auth.Errors;
 using FluentValidation;
 using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
-public partial class Authenticate
+public partial class RefreshToken
 {
-    public record Request(string Email, string Password) : IRequest<Response>;
+    public record Request(string? RefreshToken) : IRequest<Response>;
 
     public record Response(string AccessToken, [property: JsonIgnore] string RefreshToken);
 
@@ -15,8 +16,9 @@ public partial class Authenticate
     {
         public RequestValidator()
         {
-            RuleFor(request => request.Email).NotEmpty(); //todo add status code
-            RuleFor(request => request.Password).NotEmpty();
+            RuleFor(request => request.RefreshToken)
+                .NotEmpty()
+                .WithError(AuthValidationError.RefreshTokenEmpty);
         }
     }
 }

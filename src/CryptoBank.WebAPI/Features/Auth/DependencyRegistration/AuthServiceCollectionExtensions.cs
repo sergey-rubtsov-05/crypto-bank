@@ -10,8 +10,11 @@ public static class AuthServiceCollectionExtensions
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IValidator<Authenticate.Request>, Authenticate.RequestValidator>();
+        services.AddScoped<IValidator<RefreshToken.Request>, RefreshToken.RequestValidator>();
+        services.AddScoped<IValidator<RevokeToken.Request>, RevokeToken.RequestValidator>();
 
         services.AddScoped<TokenService>();
+        services.AddScoped<AuthService>();
         services.Configure<AuthOptions>(configuration.GetSection("Features:Auth"));
 
         return services;
