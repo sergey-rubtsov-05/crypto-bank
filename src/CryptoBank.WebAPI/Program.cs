@@ -18,9 +18,10 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMediatR(cfg => cfg
-    .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
-    .AddOpenBehavior(typeof(ValidationBehavior<,>)));
+builder.Services.AddMediatR(
+    cfg => cfg
+        .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+        .AddOpenBehavior(typeof(ValidationBehavior<,>)));
 
 builder.Services.AddSingleton<Dispatcher>();
 
@@ -34,28 +35,30 @@ builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var jwtOptions = builder.Configuration.GetSection("Features:Auth").Get<AuthOptions>()!.Jwt;
-
-        options.TokenValidationParameters = new TokenValidationParameters
+    .AddJwtBearer(
+        options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOptions.Issuer,
-            ValidAudience = jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-            //todo I have two places for configuring how to work with tokens. I need to refactor it
-        };
-    });
+            var jwtOptions = builder.Configuration.GetSection("Features:Auth").Get<AuthOptions>()!.Jwt;
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(PolicyName.AdministratorRole, policy => policy.RequireRole(Role.Administrator.ToString()));
-    options.AddPolicy(PolicyName.AnalystRole, policy => policy.RequireRole(Role.Analyst.ToString()));
-});
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                //todo I have two places for configuring how to work with tokens. I need to refactor it
+            };
+        });
+
+builder.Services.AddAuthorization(
+    options =>
+    {
+        options.AddPolicy(PolicyName.AdministratorRole, policy => policy.RequireRole(Role.Administrator.ToString()));
+        options.AddPolicy(PolicyName.AnalystRole, policy => policy.RequireRole(Role.Analyst.ToString()));
+    });
 
 //TODO Think about using Enhanced.DependencyInjection
 builder.Services.AddCommonProject();
