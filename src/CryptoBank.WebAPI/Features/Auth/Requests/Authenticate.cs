@@ -17,7 +17,7 @@ public partial class Authenticate
         public RequestValidator()
         {
             RuleFor(request => request.Email).NotEmpty().WithError(AuthValidationError.EmailIsEmpty);
-            RuleFor(request => request.Password).NotEmpty();
+            RuleFor(request => request.Password).NotEmpty().WithError(AuthValidationError.PasswordIsEmpty);
         }
     }
 }

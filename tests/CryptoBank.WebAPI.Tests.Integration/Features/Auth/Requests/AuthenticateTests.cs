@@ -1,7 +1,6 @@
-using System.Net;
 using CryptoBank.WebAPI.Features.Auth.Requests;
+using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
 using CryptoBank.WebAPI.Tests.Integration.Common.Errors;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using RestSharp;
 
@@ -34,42 +33,39 @@ public class AuthenticateTests : IAsyncDisposable
         await _factory.DisposeAsync();
     }
 
-    private static void VerifyApiModelValidationFailedResponse(
-        RestResponse<ProblemDetailsContract> restResponse,
-        string expectedField,
-        string expectedCode)
+    private async Task<RestResponse<ProblemDetailsContract>> ExecuteAuthenticateRequest(string email, string password)
     {
-        restResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        restResponse.ContentType.Should().Be("application/problem+json");
+        var authRequest = new Authenticate.Request(email, password);
 
-        var problemDetails = restResponse.Data;
-
-        problemDetails.Should().NotBeNull();
-        problemDetails.Title.Should().Be("Api model validation failed");
-        problemDetails.Detail.Should().Be("One or more validation errors have occurred");
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
-
-        var actualErrors = problemDetails.Errors;
-        actualErrors.Should().NotBeNull();
-        actualErrors.Should().ContainSingle();
-
-        var actualError = actualErrors.Single();
-        actualError.Field.Should().Be(expectedField);
-        actualError.Code.Should().Be(expectedCode);
-    }
-
-    [Fact]
-    public async Task RequestValidator_EmailIsEmpty_ReturnsValidationError()
-    {
         var httpClient = _factory.CreateClient();
         var restClient = new RestClient(httpClient);
-
-        var authRequest = new Authenticate.Request("", "anyPassword");
 
         var restResponse =
             await restClient.ExecutePostAsync<ProblemDetailsContract>(
                 new RestRequest("/auth").AddJsonBody(authRequest));
 
-        VerifyApiModelValidationFailedResponse(restResponse, "email", "auth_validation_email_is_empty");
+        return restResponse;
+    }
+
+    [Fact]
+    public async Task RequestValidator_EmailIsEmpty_ReturnsValidationError()
+    {
+        const string email = "";
+        const string password = "anyPassword";
+
+        var restResponse = await ExecuteAuthenticateRequest(email, password);
+
+        restResponse.ShouldBeApiModelValidationFailedResponse("email", "auth_validation_email_is_empty");
+    }
+
+    [Fact]
+    private async Task RequestValidator_PasswordIsEmpty_ReturnsValidationError()
+    {
+        const string email = "anyEmail";
+        const string password = "";
+
+        var restResponse = await ExecuteAuthenticateRequest(email, password);
+
+        restResponse.ShouldBeApiModelValidationFailedResponse("password", "auth_validation_password_is_empty");
     }
 }
