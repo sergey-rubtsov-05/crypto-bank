@@ -12,11 +12,13 @@ public class CryptoBankDbContext : DbContext
     }
 
     public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<Token> Tokens => Set<Token>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         AccountMap.Create(modelBuilder);
+        TokenMap.Create(modelBuilder);
         UserMap.Create(modelBuilder);
     }
 }

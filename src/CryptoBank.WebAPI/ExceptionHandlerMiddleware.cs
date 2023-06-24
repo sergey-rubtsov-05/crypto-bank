@@ -26,6 +26,11 @@ public class ExceptionHandlerMiddleware : IMiddleware
             _logger.LogInformation(apiModelValidationException, "Api model validation failed");
             problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
         }
+        catch (ApiValidationException apiValidationException)
+        {
+            _logger.LogInformation(apiValidationException, "Api validation failed");
+            problemDetails = CreateProblemDetails(apiValidationException, StatusCodes.Status400BadRequest);
+        }
         catch (AuthenticationException authenticationException)
         {
             _logger.LogInformation(authenticationException, "Authentication failed");
@@ -44,7 +49,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
 
             problemDetails.Extensions.Add("traceId", Activity.Current?.Id ?? context.TraceIdentifier);
 
-            problemDetails.Extensions["code"] = logicConflictException.Code;
+            problemDetails.Extensions["code"] = logicConflictException.ErrorCode;
         }
         catch (Exception exception)
         {
@@ -73,8 +78,32 @@ public class ExceptionHandlerMiddleware : IMiddleware
         var problemDetails = new ProblemDetails
         {
             Status = httpStatusCode,
-            Title = validationException.Message,
-            Detail = string.Join(", ", validationFailures.Select(error => error.ErrorMessage)),
+            Title = "Api model validation exception",
+            Detail = validationException.Message,
+            Extensions =
+            {
+                ["errors"] = validationException.Errors.Select(
+                    validationFailure => new
+                    {
+                        Field = validationFailure.PropertyName,
+                        Message = validationFailure.ErrorMessage,
+                        Code = validationFailure.ErrorCode,
+                    }),
+            },
+        };
+
+        return problemDetails;
+    }
+
+    private static ProblemDetails CreateProblemDetails(
+        ApiValidationException validationException,
+        int httpStatusCode)
+    {
+        var problemDetails = new ProblemDetails
+        {
+            Status = httpStatusCode,
+            Title = "Api validation failed",
+            Extensions = { ["code"] = validationException.ErrorCode },
         };
 
         return problemDetails;
