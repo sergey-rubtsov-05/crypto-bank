@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CryptoBank.WebAPI.Common.Validation;
+using CryptoBank.WebAPI.Features.Auth.Errors;
 using FluentValidation;
 using MediatR;
 
@@ -15,7 +16,7 @@ public partial class Authenticate
     {
         public RequestValidator()
         {
-            RuleFor(request => request.Email).NotEmpty(); //todo add status code
+            RuleFor(request => request.Email).NotEmpty().WithError(AuthValidationError.EmailIsEmpty);
             RuleFor(request => request.Password).NotEmpty();
         }
     }

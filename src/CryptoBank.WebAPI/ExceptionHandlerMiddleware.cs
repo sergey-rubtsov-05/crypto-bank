@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using CryptoBank.WebAPI.Common.Errors.Exceptions;
 using CryptoBank.WebAPI.Features.Auth.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         ProblemDetails? problemDetails = null;
+        string? contentType = null;
         try
         {
             await next(context);
@@ -25,6 +27,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogInformation(apiModelValidationException, "Api model validation failed");
             problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
+            contentType = "application/problem+json";
         }
         catch (ApiValidationException apiValidationException)
         {
@@ -62,7 +65,7 @@ public class ExceptionHandlerMiddleware : IMiddleware
 
         context.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status500InternalServerError;
         //todo: use correct json serializer. What if we want to use NewtonsoftJson? 
-        await context.Response.WriteAsJsonAsync(problemDetails);
+        await context.Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, contentType);
     }
 
     private static ProblemDetails CreateProblemDetails(int httpStatusCode, string title)
@@ -74,22 +77,12 @@ public class ExceptionHandlerMiddleware : IMiddleware
         ApiModelValidationException validationException,
         int httpStatusCode)
     {
-        var validationFailures = validationException.Errors;
         var problemDetails = new ProblemDetails
         {
             Status = httpStatusCode,
-            Title = "Api model validation exception",
+            Title = "Api model validation failed",
             Detail = validationException.Message,
-            Extensions =
-            {
-                ["errors"] = validationException.Errors.Select(
-                    validationFailure => new
-                    {
-                        Field = validationFailure.PropertyName,
-                        Message = validationFailure.ErrorMessage,
-                        Code = validationFailure.ErrorCode,
-                    }),
-            },
+            Extensions = { ["errors"] = validationException.Errors },
         };
 
         return problemDetails;
