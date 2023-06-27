@@ -12,7 +12,8 @@ internal static class ProblemDetailsResponseExtensions
         string expectedField,
         string expectedCode)
     {
-        restResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        const HttpStatusCode expectedHttpStatusCode = HttpStatusCode.BadRequest;
+        restResponse.StatusCode.Should().Be(expectedHttpStatusCode);
         restResponse.ContentType.Should().Be("application/problem+json");
 
         var problemDetails = restResponse.Data;
@@ -20,7 +21,7 @@ internal static class ProblemDetailsResponseExtensions
         problemDetails.Should().NotBeNull();
         problemDetails.Title.Should().Be("Api model validation failed");
         problemDetails.Detail.Should().Be("One or more validation errors have occurred");
-        problemDetails.Status.Should().Be(StatusCodes.Status400BadRequest);
+        problemDetails.Status.Should().Be((int)expectedHttpStatusCode);
 
         var actualErrors = problemDetails.Errors;
         actualErrors.Should().NotBeNull();
@@ -29,5 +30,19 @@ internal static class ProblemDetailsResponseExtensions
         var actualError = actualErrors.Single();
         actualError.Field.Should().BeEquivalentTo(expectedField);
         actualError.Code.Should().Be(expectedCode);
+    }
+
+    public static void ShouldBeUnauthorizedResponse(this RestResponse<ProblemDetailsContract> restResponse)
+    {
+        const HttpStatusCode expectedHttpStatusCode = HttpStatusCode.Unauthorized;
+
+        restResponse.StatusCode.Should().Be(expectedHttpStatusCode);
+        restResponse.ContentType.Should().Be("application/problem+json");
+
+        var problemDetails = restResponse.Data;
+
+        problemDetails.Should().NotBeNull();
+        problemDetails.Title.Should().Be("Authentication failed");
+        problemDetails.Status.Should().Be((int)expectedHttpStatusCode);
     }
 }

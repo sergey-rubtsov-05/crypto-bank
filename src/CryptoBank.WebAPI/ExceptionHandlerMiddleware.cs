@@ -18,7 +18,6 @@ public class ExceptionHandlerMiddleware : IMiddleware
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         ProblemDetails? problemDetails = null;
-        string? contentType = null;
         try
         {
             await next(context);
@@ -27,7 +26,6 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogInformation(apiModelValidationException, "Api model validation failed");
             problemDetails = CreateProblemDetails(apiModelValidationException, StatusCodes.Status400BadRequest);
-            contentType = "application/problem+json";
         }
         catch (ApiValidationException apiValidationException)
         {
@@ -64,8 +62,9 @@ public class ExceptionHandlerMiddleware : IMiddleware
             return;
 
         context.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status500InternalServerError;
+        const string problemJsonContentType = "application/problem+json";
         //todo: use correct json serializer. What if we want to use NewtonsoftJson? 
-        await context.Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, contentType);
+        await context.Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, problemJsonContentType);
     }
 
     private static ProblemDetails CreateProblemDetails(int httpStatusCode, string title)

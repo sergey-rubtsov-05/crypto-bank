@@ -106,6 +106,39 @@ public class AuthenticateTests : IAsyncLifetime
     }
 
     [Fact]
+    private async Task EmailDoesNotExist_ReturnsUnauthorisedResponse()
+    {
+        const string email = "anyEmail";
+        const string password = "anyPassword";
+
+        var restResponse = await ExecuteAuthenticateRequest<ProblemDetailsContract>(email, password);
+
+        restResponse.ShouldBeUnauthorizedResponse();
+    }
+
+    [Fact]
+    private async Task PasswordIsInvalid_ReturnsUnauthorisedResponse()
+    {
+        var utcNow = new DateTime(2023, 06, 27, 0, 0, 0, DateTimeKind.Utc);
+        _clockMock.SetupGet(clock => clock.UtcNow).Returns(utcNow);
+
+        var user = new User(
+            "email",
+            _scope.ServiceProvider.GetRequiredService<IPasswordHasher>().Hash("validPassword"),
+            null,
+            utcNow,
+            new[] { Role.User, Role.Analyst });
+
+        await _dbContext.Users.AddAsync(user);
+
+        await _dbContext.SaveChangesAsync();
+
+        var restResponse = await ExecuteAuthenticateRequest<ProblemDetailsContract>(user.Email, "invalidPassword");
+
+        restResponse.ShouldBeUnauthorizedResponse();
+    }
+
+    [Fact]
     public async Task RequestValidator_EmailIsEmpty_ReturnsValidationError()
     {
         const string email = "";
