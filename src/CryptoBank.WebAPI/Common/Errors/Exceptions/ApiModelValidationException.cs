@@ -1,20 +1,21 @@
 using CryptoBank.WebAPI.Common.Errors.Exceptions.Base;
-using FluentValidation.Results;
 
 namespace CryptoBank.WebAPI.Common.Errors.Exceptions;
 
 public class ApiModelValidationException : ErrorException
 {
-    public ApiModelValidationException(IEnumerable<ValidationFailure> errors)
+    public ApiModelValidationException(IEnumerable<ProblemDetailsError> errors)
         : this("One or more validation errors have occurred", errors)
     {
     }
 
-    public ApiModelValidationException(string message, IEnumerable<ValidationFailure> errors)
+    public ApiModelValidationException(string message, IEnumerable<ProblemDetailsError> errors)
         : base(message)
     {
         Errors = errors;
     }
 
-    public IEnumerable<ValidationFailure> Errors { get; }
+    public IEnumerable<ProblemDetailsError> Errors { get; }
 }
+
+public record ProblemDetailsError(string Field, string Message, string Code);
