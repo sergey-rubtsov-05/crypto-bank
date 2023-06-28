@@ -27,11 +27,13 @@ public class TokenService
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SigningKey));
         var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var utcNow = _clock.UtcNow;
         var securityTokenDescriptor = new SecurityTokenDescriptor
         {
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
-            Expires = _clock.UtcNow.Add(_jwtOptions.AccessTokenLifeTime),
+            Expires = utcNow.Add(_jwtOptions.AccessTokenLifeTime),
+            NotBefore = utcNow,
             SigningCredentials = signingCredentials,
             Claims = new Dictionary<string, object>
             {

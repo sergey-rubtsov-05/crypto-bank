@@ -10,9 +10,11 @@ public static class DatabaseProjectServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("CryptoBankDb"); //todo store password in secure place
-        services.AddDbContext<CryptoBankDbContext>(optionsBuilder =>
-            optionsBuilder.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.UseAdminDatabase("postgres")));
+        //todo store password in secure place
+        services.AddDbContext<CryptoBankDbContext>(
+            optionsBuilder => optionsBuilder.UseNpgsql(
+                configuration.GetConnectionString("CryptoBankDb"),
+                npgsqlOptions => npgsqlOptions.UseAdminDatabase("postgres")));
 
         return services;
     }

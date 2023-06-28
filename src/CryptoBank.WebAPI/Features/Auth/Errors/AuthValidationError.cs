@@ -8,6 +8,8 @@ internal class AuthValidationError : ValidationError
 
     public static readonly AuthValidationError RefreshTokenEmpty = new(Prefix + "refresh_token_empty");
     public static readonly AuthValidationError RefreshTokenDoesNotExist = new(Prefix + "refresh_token_does_not_exist");
+    public static readonly AuthValidationError EmailIsEmpty = new(Prefix + "email_is_empty");
+    public static readonly AuthValidationError PasswordIsEmpty = new(Prefix + "password_is_empty");
 
     private AuthValidationError(string code)
         : base(code)
