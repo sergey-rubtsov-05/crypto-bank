@@ -47,6 +47,7 @@ internal static class AuthenticateResponseExtensions
 
     private static JwtSecurityToken ValidateAccessToken(AuthOptions authOptions, string accessToken)
     {
+        //TODO: DRY problem: this code duplicate code from Program.cs
         new JwtSecurityTokenHandler().ValidateToken(
             accessToken,
             new TokenValidationParameters

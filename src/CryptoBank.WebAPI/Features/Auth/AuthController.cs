@@ -62,7 +62,7 @@ public class AuthController : Controller
 
     private void SetRefreshTokenToCookies(string refreshToken)
     {
-        //todo: question is there better to set cookie in response
+        //todo: question is there better way to set cookie in response
         HttpContext.Response.Cookies.Append(
             RefreshTokenCookieKey,
             refreshToken,
