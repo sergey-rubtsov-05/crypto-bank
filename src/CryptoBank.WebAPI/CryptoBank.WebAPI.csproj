@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CryptoBank.WebAPI</RootNamespace>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +26,12 @@
   <ItemGroup>
     <ProjectReference Include="..\CryptoBank.Common\CryptoBank.Common.csproj" />
     <ProjectReference Include="..\CryptoBank.Database\CryptoBank.Database.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
