@@ -3,6 +3,12 @@
 ## build image. Current directory: "{repository}\src"
 docker build -t CryptoBank -f .\CryptoBank.WebAPI\Dockerfile .
 
+## update tag
+docker tag {SOURCE_TAG} {TARGET_TAG}
+
+## push image
+docker push docker.io/sergeyrubtsov/crypto-bank:v0.0.5
+
 ## run container
 ## -i - keep STDIN open even if not attached
 ## -t - allocate a pseudo-tty
