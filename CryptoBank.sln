@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		console-cheatsheet.md = console-cheatsheet.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoBank.Common", "src\CryptoBank.Common\CryptoBank.Common.csproj", "{B7BB73E0-5454-4F9E-9831-2016BD6783F9}"
