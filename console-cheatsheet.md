@@ -1,0 +1,31 @@
+# docker commands
+
+## build image. Current directory: "{repository}\src"
+docker build -t crypto-bank -f .\CryptoBank.WebAPI\Dockerfile .
+
+## update tag
+docker tag {SOURCE_TAG} {TARGET_TAG}
+
+## push image
+docker push docker.io/sergeyrubtsov/crypto-bank:v0.0.5
+
+## run container
+## -i - keep STDIN open even if not attached
+## -t - allocate a pseudo-tty
+## -d - detach STDIN
+## -p - port mapping
+## --rm - remove container after stopping
+docker run --name CryptoBank -i -t -d -p 7180:80 CryptoBank
+
+## list containers
+docker ps
+
+## The command fetches the logs of a container
+docker logs {CONTAINER}
+
+## The command executes a command in a running container
+docker exec {CONTAINER} {COMMAND}
+docker exec -it webapi bash
+
+## run bitcoin node container
+docker run --name=bitcoind-node -d --mount type=bind,source=/d/bitcoin/testnet,target=/bitcoin/.bitcoin -p 18332:18332 kylemanna/bitcoind
