@@ -1,7 +1,7 @@
 # docker commands
 
 ## build image. Current directory: "{repository}\src"
-docker build -t CryptoBank -f .\CryptoBank.WebAPI\Dockerfile .
+docker build -t crypto-bank -f .\CryptoBank.WebAPI\Dockerfile .
 
 ## update tag
 docker tag {SOURCE_TAG} {TARGET_TAG}
@@ -26,3 +26,6 @@ docker logs {CONTAINER}
 ## The command executes a command in a running container
 docker exec {CONTAINER} {COMMAND}
 docker exec -it webapi bash
+
+## run bitcoin node container
+docker run --name=bitcoind-node -d --mount type=bind,source=/d/bitcoin/testnet,target=/bitcoin/.bitcoin -p 18332:18332 kylemanna/bitcoind
