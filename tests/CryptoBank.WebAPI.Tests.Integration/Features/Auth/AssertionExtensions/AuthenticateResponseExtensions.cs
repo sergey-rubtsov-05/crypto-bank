@@ -77,6 +77,7 @@ internal static class AuthenticateResponseExtensions
         //todo: problem: test server does not set cookies when HttpOnly is true and Secure is true
         return;
 
+#pragma warning disable CS0162
         var refreshTokenCookie = cookies?.SingleOrDefault(cookie => cookie.Name == "refresh-token");
         refreshTokenCookie.Should().NotBeNull();
         refreshTokenCookie!.HttpOnly.Should().BeTrue();
@@ -90,5 +91,6 @@ internal static class AuthenticateResponseExtensions
 
         refreshTokenEntity.Should().NotBeNull();
         refreshTokenEntity.ExpirationTime.Should().Be(utcNow.Add(authOptions.RefreshTokenLifeTime));
+#pragma warning restore CS0162
     }
 }

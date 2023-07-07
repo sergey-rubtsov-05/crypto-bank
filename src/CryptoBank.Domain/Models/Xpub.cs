@@ -1,6 +1,6 @@
 namespace CryptoBank.Domain.Models;
 
-public class Xpub
+public record Xpub
 {
     public Xpub(string currencyCode, string value)
     {
@@ -11,4 +11,5 @@ public class Xpub
     public int Id { get; init; }
     public string CurrencyCode { get; init; }
     public string Value { get; init; }
+    public uint LastUsedDerivationIndex { get; init; }
 }

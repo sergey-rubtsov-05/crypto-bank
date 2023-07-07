@@ -21,6 +21,9 @@ public class ExceptionHandlerMiddleware : IMiddleware
         try
         {
             await next(context);
+
+            if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+                throw new AuthenticationException("Built-in authentication failed");
         }
         catch (ApiModelValidationException apiModelValidationException)
         {
