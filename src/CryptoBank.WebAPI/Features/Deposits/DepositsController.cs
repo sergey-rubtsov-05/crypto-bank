@@ -18,10 +18,8 @@ public class DepositsController
 
     [Authorize]
     [HttpPut("depositAddress")]
-    public Task<GetDepositAddress.Response> GetDepositAddress(
-        GetDepositAddress.Request request,
-        CancellationToken cancellationToken)
+    public Task<GetDepositAddress.Response> GetDepositAddress(CancellationToken cancellationToken)
     {
-        return _dispatcher.Dispatch(request, cancellationToken);
+        return _dispatcher.Dispatch(new GetDepositAddress.Request(), cancellationToken);
     }
 }

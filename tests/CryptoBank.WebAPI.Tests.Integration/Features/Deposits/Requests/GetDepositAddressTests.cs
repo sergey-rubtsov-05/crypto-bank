@@ -41,12 +41,10 @@ public class GetDepositAddressTests : IntegrationTestsBase
 
     private async Task<RestResponse<TResponse>> ExecuteRequest<TResponse>(string accessToken = null)
     {
-        var request = new GetDepositAddress.Request();
-
         var httpClient = Factory.CreateClient();
         var restClient = new RestClient(httpClient);
 
-        var restRequest = new RestRequest("/deposits/depositAddress").AddJsonBody(request);
+        var restRequest = new RestRequest("/deposits/depositAddress");
 
         if (accessToken != null)
             restRequest.Authenticator = new JwtAuthenticator(accessToken);
