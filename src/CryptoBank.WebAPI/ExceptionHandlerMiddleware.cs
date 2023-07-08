@@ -8,11 +8,13 @@ namespace CryptoBank.WebAPI;
 
 public class ExceptionHandlerMiddleware : IMiddleware
 {
+    private readonly IHostEnvironment _environment;
     private readonly ILogger<ExceptionHandlerMiddleware> _logger;
 
-    public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger)
+    public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, IHostEnvironment environment)
     {
         _logger = logger;
+        _environment = environment;
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -59,6 +61,9 @@ public class ExceptionHandlerMiddleware : IMiddleware
         {
             _logger.LogError(exception, "Unhandled exception occured");
             problemDetails = CreateProblemDetails(StatusCodes.Status500InternalServerError, "Internal server error");
+
+            if (_environment.IsDevelopment())
+                problemDetails.Detail = exception.ToString();
         }
 
         if (problemDetails is null)

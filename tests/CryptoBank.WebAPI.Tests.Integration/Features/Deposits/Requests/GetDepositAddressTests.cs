@@ -6,6 +6,7 @@ using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
 using CryptoBank.WebAPI.Tests.Integration.Common;
 using CryptoBank.WebAPI.Tests.Integration.Common.Errors;
 using CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -14,8 +15,8 @@ namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.Requests;
 
 public class GetDepositAddressTests : IntegrationTestsBase
 {
-    private IClock _clock;
     private AuthHelper _authHelper;
+    private IClock _clock;
 
     protected override void ConfigureService(IServiceCollection services)
     {
@@ -56,7 +57,25 @@ public class GetDepositAddressTests : IntegrationTestsBase
     }
 
     [Fact]
-    private async Task DepositAddressDoesNotExist_ReturnNewAddressInResponse()
+    private async Task DepositAddress_SecondCallReturnsTheSameAddress()
+    {
+        var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
+        await DbContext.Users.AddAsync(user);
+        await DbContext.SaveChangesAsync();
+
+        var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
+
+        var restResponse1 = await ExecuteRequest<GetDepositAddress.Response>(accessToken);
+        restResponse1.ShouldBeValidJsonResponse();
+
+        var restResponse2 = await ExecuteRequest<GetDepositAddress.Response>(accessToken);
+        restResponse2.ShouldBeValidJsonResponse();
+
+        restResponse1.Data.CryptoAddress.Should().Be(restResponse2.Data.CryptoAddress);
+    }
+
+    [Fact]
+    private async Task DepositAddressDoesNotExist_ReturnsNewAddressInResponse()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
         await DbContext.Users.AddAsync(user);

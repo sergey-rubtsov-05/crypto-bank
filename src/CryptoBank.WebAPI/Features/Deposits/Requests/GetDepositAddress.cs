@@ -1,6 +1,9 @@
 using CryptoBank.Database;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Common.Errors.Exceptions;
 using CryptoBank.WebAPI.Common.Services;
+using CryptoBank.WebAPI.Features.Deposits.Errors;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NBitcoin;
@@ -13,6 +16,7 @@ public class GetDepositAddress
 
     public record Response(string CryptoAddress);
 
+    [UsedImplicitly]
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly CurrentAuthInfoSource _currentAuthInfoSource;
@@ -26,19 +30,43 @@ public class GetDepositAddress
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
+            var userId = _currentAuthInfoSource.GetUserId();
+
+            var existedCryptoAddress = await GetExistedCryptoAddress(userId, cancellationToken);
+            if (existedCryptoAddress is not null)
+                return new Response(existedCryptoAddress);
+
+            var userCryptoAddress = await CreateNewCryptoAddress(userId, cancellationToken);
+
+            return new Response(userCryptoAddress);
+        }
+
+        private async Task<string?> GetExistedCryptoAddress(int userId, CancellationToken cancellationToken)
+        {
+            var existedCryptoAddress = await _dbContext.DepositAddresses
+                .Where(address => address.UserId == userId)
+                .Select(address => address.CryptoAddress)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return existedCryptoAddress;
+        }
+
+        private async Task<string> CreateNewCryptoAddress(int userId, CancellationToken cancellationToken)
+        {
             var (xpub, derivationIndex) = await GetXpubAndNextDerivationIndex(cancellationToken);
 
             var userCryptoAddress = CreateCryptoAddress(xpub.Value, derivationIndex);
 
-            await SaveToDbDepositAddress(xpub.Id, derivationIndex, userCryptoAddress, cancellationToken);
-
-            return new Response(userCryptoAddress);
+            await SaveToDbDepositAddress(xpub.Id, derivationIndex, userCryptoAddress, userId, cancellationToken);
+            return userCryptoAddress;
         }
 
         private async Task<(Xpub xpub, uint nextDerivationIndex)> GetXpubAndNextDerivationIndex(
             CancellationToken cancellationToken)
         {
-            var xpub = await _dbContext.Xpubs.SingleAsync(cancellationToken);
+            var xpub = await _dbContext.Xpubs.SingleOrDefaultAsync(cancellationToken);
+            if (xpub is null)
+                throw new LogicConflictException(DepositsLogicConflictError.ServiceIsNotConfigured);
 
             var derivationIndex = xpub.LastUsedDerivationIndex + 1;
 
@@ -70,10 +98,9 @@ public class GetDepositAddress
             int xpubId,
             uint derivationIndex,
             string cryptoAddress,
+            int userId,
             CancellationToken cancellationToken)
         {
-            var userId = _currentAuthInfoSource.GetUserId();
-
             var depositAddress = new DepositAddress("BTC", derivationIndex, cryptoAddress, userId, xpubId);
 
             await _dbContext.DepositAddresses.AddAsync(depositAddress, cancellationToken);

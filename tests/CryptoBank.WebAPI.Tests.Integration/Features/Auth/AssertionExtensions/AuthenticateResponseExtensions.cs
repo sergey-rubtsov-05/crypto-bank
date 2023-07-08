@@ -6,6 +6,7 @@ using CryptoBank.Database;
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Requests;
+using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,8 +23,7 @@ internal static class AuthenticateResponseExtensions
         AuthOptions authOptions,
         CryptoBankDbContext dbContext)
     {
-        restResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        restResponse.ContentType.Should().Be("application/json");
+        restResponse.ShouldBeValidJsonResponse();
 
         restResponse.Data.ShouldHaveValidAccessToken(user, authOptions);
 

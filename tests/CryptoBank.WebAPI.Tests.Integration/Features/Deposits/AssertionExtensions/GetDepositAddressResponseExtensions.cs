@@ -1,4 +1,3 @@
-using System.Net;
 using CryptoBank.Database;
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Features.Deposits.Requests;
@@ -17,8 +16,7 @@ public static class GetDepositAddressResponseExtensions
         User user,
         CryptoBankDbContext dbContext)
     {
-        restResponse.StatusCode.Should().Be(HttpStatusCode.OK, restResponse.Content);
-        restResponse.ContentType.Should().Be("application/json");
+        restResponse.ShouldBeValidJsonResponse();
 
         var response = restResponse.Data;
         response.ShouldNotBeNull();
