@@ -1,5 +1,6 @@
 using CryptoBank.Database;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Features.Deposits.Services;
 using Microsoft.EntityFrameworkCore;
 using NBitcoin;
 
@@ -8,12 +9,17 @@ namespace CryptoBank.WebAPI.Features.Deposits.Jobs;
 public class InitialXpubCreator : IHostedService
 {
     private readonly ILogger<InitialXpubCreator> _logger;
+    private readonly NetworkSource _networkSource;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public InitialXpubCreator(IServiceScopeFactory serviceScopeFactory, ILogger<InitialXpubCreator> logger)
+    public InitialXpubCreator(
+        ILogger<InitialXpubCreator> logger,
+        NetworkSource networkSource,
+        IServiceScopeFactory serviceScopeFactory)
     {
-        _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
+        _networkSource = networkSource;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -21,6 +27,7 @@ public class InitialXpubCreator : IHostedService
         await using var scope = _serviceScopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
 
+        //TODO: potential problem: if multiple instances of this service start at the same time
         var xpubExists = await dbContext.Xpubs.AnyAsync(cancellationToken);
         if (xpubExists)
             return;
@@ -38,8 +45,7 @@ public class InitialXpubCreator : IHostedService
     private string GeneratePubKey()
     {
         var masterPrvKey = new ExtKey();
-        //TODO move Network.TestNet to config
-        var network = Network.TestNet;
+        var network = _networkSource.Get();
         _logger.LogInformation($"Master private key: [{masterPrvKey.ToString(network)}]");
 
         var masterPubKey = masterPrvKey.Neuter();

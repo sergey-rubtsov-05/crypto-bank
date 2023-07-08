@@ -3,6 +3,7 @@ using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Common.Errors.Exceptions;
 using CryptoBank.WebAPI.Common.Services;
 using CryptoBank.WebAPI.Features.Deposits.Errors;
+using CryptoBank.WebAPI.Features.Deposits.Services;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,11 +22,16 @@ public class GetDepositAddress
     {
         private readonly CurrentAuthInfoSource _currentAuthInfoSource;
         private readonly CryptoBankDbContext _dbContext;
+        private readonly NetworkSource _networkSource;
 
-        public RequestHandler(CryptoBankDbContext dbContext, CurrentAuthInfoSource currentAuthInfoSource)
+        public RequestHandler(
+            CurrentAuthInfoSource currentAuthInfoSource,
+            CryptoBankDbContext dbContext,
+            NetworkSource networkSource)
         {
-            _dbContext = dbContext;
             _currentAuthInfoSource = currentAuthInfoSource;
+            _dbContext = dbContext;
+            _networkSource = networkSource;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
@@ -80,10 +86,9 @@ public class GetDepositAddress
             return (xpub, derivationIndex);
         }
 
-        private static string CreateCryptoAddress(string base58ExtPubKey, uint derivationIndex)
+        private string CreateCryptoAddress(string base58ExtPubKey, uint derivationIndex)
         {
-            //TODO: move network to config
-            var network = Network.TestNet;
+            var network = _networkSource.Get();
             var masterExtPubKey = new BitcoinExtPubKey(base58ExtPubKey, network).ExtPubKey;
 
             var userPubKey = masterExtPubKey.Derive(derivationIndex).PubKey;
