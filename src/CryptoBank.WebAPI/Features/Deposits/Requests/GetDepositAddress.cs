@@ -11,7 +11,7 @@ using NBitcoin;
 
 namespace CryptoBank.WebAPI.Features.Deposits.Requests;
 
-public class GetDepositAddress
+public static class GetDepositAddress
 {
     public record Request : IRequest<Response>;
 

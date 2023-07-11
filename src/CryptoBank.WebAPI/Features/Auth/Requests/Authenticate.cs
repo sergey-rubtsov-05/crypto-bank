@@ -6,7 +6,7 @@ using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
-public partial class Authenticate
+public static partial class Authenticate
 {
     public record Request(string Email, string Password) : IRequest<Response>;
 

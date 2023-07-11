@@ -3,7 +3,7 @@ using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Users.Requests;
 
-public partial class GetProfile
+public static partial class GetProfile
 {
     public record Request : IRequest<Response>;
 
