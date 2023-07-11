@@ -4,7 +4,7 @@ using CryptoBank.WebAPI.Features.Deposits.Services;
 using Microsoft.EntityFrameworkCore;
 using NBitcoin;
 
-namespace CryptoBank.WebAPI.Features.Deposits.Jobs;
+namespace CryptoBank.WebAPI.Features.Deposits.InitializationTasks;
 
 public class InitialXpubCreator : IHostedService
 {

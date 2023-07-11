@@ -1,4 +1,4 @@
-using CryptoBank.WebAPI.Features.Deposits.Jobs;
+using CryptoBank.WebAPI.Features.Deposits.InitializationTasks;
 using CryptoBank.WebAPI.Features.Deposits.Options;
 using CryptoBank.WebAPI.Features.Deposits.Services;
 
