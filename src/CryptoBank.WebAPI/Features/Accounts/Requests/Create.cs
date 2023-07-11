@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Accounts.Requests;
 
-public partial class Create
+public static partial class Create
 {
     public record Request(string Currency) : IRequest<Response>;
 

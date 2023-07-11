@@ -6,7 +6,7 @@ using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Auth.Requests;
 
-public partial class RefreshToken
+public static partial class RefreshToken
 {
     public record Request(string? RefreshToken) : IRequest<Response>;
 

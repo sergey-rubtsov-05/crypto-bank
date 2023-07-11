@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CryptoBank.WebAPI.Features.Accounts.Requests;
 
-public partial class GetNumberOfOpenedAccounts
+public static partial class GetNumberOfOpenedAccounts
 {
     public record Request(DateOnly BeginDate, DateOnly EndDate) : IRequest<Response>;
 

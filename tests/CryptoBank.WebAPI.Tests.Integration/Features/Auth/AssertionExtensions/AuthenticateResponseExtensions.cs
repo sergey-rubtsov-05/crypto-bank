@@ -6,6 +6,7 @@ using CryptoBank.Database;
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Requests;
+using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,8 +23,7 @@ internal static class AuthenticateResponseExtensions
         AuthOptions authOptions,
         CryptoBankDbContext dbContext)
     {
-        restResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        restResponse.ContentType.Should().Be("application/json");
+        restResponse.ShouldBeValidJsonResponse();
 
         restResponse.Data.ShouldHaveValidAccessToken(user, authOptions);
 
@@ -77,6 +77,7 @@ internal static class AuthenticateResponseExtensions
         //todo: problem: test server does not set cookies when HttpOnly is true and Secure is true
         return;
 
+#pragma warning disable CS0162
         var refreshTokenCookie = cookies?.SingleOrDefault(cookie => cookie.Name == "refresh-token");
         refreshTokenCookie.Should().NotBeNull();
         refreshTokenCookie!.HttpOnly.Should().BeTrue();
@@ -90,5 +91,6 @@ internal static class AuthenticateResponseExtensions
 
         refreshTokenEntity.Should().NotBeNull();
         refreshTokenEntity.ExpirationTime.Should().Be(utcNow.Add(authOptions.RefreshTokenLifeTime));
+#pragma warning restore CS0162
     }
 }
