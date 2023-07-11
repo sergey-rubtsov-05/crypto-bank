@@ -38,23 +38,21 @@ public static class GetDepositAddress
         {
             var userId = _currentAuthInfoSource.GetUserId();
 
-            var existedCryptoAddress = await GetExistedCryptoAddress(userId, cancellationToken);
-            if (existedCryptoAddress is not null)
-                return new Response(existedCryptoAddress);
+            var existingCryptoAddress = await GetExistingCryptoAddress(userId, cancellationToken);
+            if (existingCryptoAddress is not null)
+                return new Response(existingCryptoAddress);
 
             var userCryptoAddress = await CreateNewCryptoAddress(userId, cancellationToken);
 
             return new Response(userCryptoAddress);
         }
 
-        private async Task<string?> GetExistedCryptoAddress(int userId, CancellationToken cancellationToken)
+        private async Task<string?> GetExistingCryptoAddress(int userId, CancellationToken cancellationToken)
         {
-            var existedCryptoAddress = await _dbContext.DepositAddresses
+            return await _dbContext.DepositAddresses
                 .Where(address => address.UserId == userId)
                 .Select(address => address.CryptoAddress)
                 .SingleOrDefaultAsync(cancellationToken);
-
-            return existedCryptoAddress;
         }
 
         private async Task<string> CreateNewCryptoAddress(int userId, CancellationToken cancellationToken)
