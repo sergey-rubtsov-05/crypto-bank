@@ -68,18 +68,24 @@ public static class GetDepositAddress
         private async Task<(Xpub xpub, uint nextDerivationIndex)> GetXpubAndNextDerivationIndex(
             CancellationToken cancellationToken)
         {
-            var xpub = await _dbContext.Xpubs.SingleOrDefaultAsync(cancellationToken);
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            var xpub = await _dbContext.Xpubs
+                .FromSql($"SELECT * FROM xpubs FOR UPDATE")
+                .SingleOrDefaultAsync(cancellationToken);
+
             if (xpub is null)
                 throw new LogicConflictException(DepositsLogicConflictError.ServiceIsNotConfigured);
 
             var derivationIndex = xpub.LastUsedDerivationIndex + 1;
 
-            //TODO: potential problem: guess race condition, if two users will try to get address at the same time
             await _dbContext.Xpubs
                 .Where(x => x.Id == xpub.Id)
                 .ExecuteUpdateAsync(
                     s => s.SetProperty(p => p.LastUsedDerivationIndex, derivationIndex),
                     cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
 
             return (xpub, derivationIndex);
         }

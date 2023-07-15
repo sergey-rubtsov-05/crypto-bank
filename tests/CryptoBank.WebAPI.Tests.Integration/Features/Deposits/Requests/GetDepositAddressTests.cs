@@ -55,6 +55,37 @@ public class GetDepositAddressTests : IntegrationTestsBase
     }
 
     [Fact]
+    private async Task DepositAddress_Create10AddressesInParallel()
+    {
+        for (var i = 1; i <= 10; i++)
+        {
+            var user = new User($"anyEmail{i}", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
+            await DbContext.Users.AddAsync(user);
+        }
+
+        await DbContext.SaveChangesAsync();
+
+        var requestTasks = DbContext.Users.ToList()
+            .Select(
+                user =>
+                {
+                    var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
+                    return ExecuteRequest<GetDepositAddress.Response>(accessToken);
+                })
+            .ToList();
+
+        var responses = await Task.WhenAll(requestTasks);
+        responses.Should().AllSatisfy(response => response.ShouldBeValidJsonResponse());
+
+        uint previousDerivationIndex = 0;
+        foreach (var depositAddress in DbContext.DepositAddresses.OrderBy(address => address.DerivationIndex))
+        {
+            depositAddress.DerivationIndex.Should().Be(previousDerivationIndex + 1);
+            previousDerivationIndex = depositAddress.DerivationIndex;
+        }
+    }
+
+    [Fact]
     private async Task DepositAddress_SecondCallReturnsTheSameAddress()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
