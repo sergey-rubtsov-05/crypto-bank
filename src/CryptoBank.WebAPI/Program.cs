@@ -11,6 +11,7 @@ using CryptoBank.WebAPI.Common.Validation;
 using CryptoBank.WebAPI.Features.Accounts.DependencyRegistration;
 using CryptoBank.WebAPI.Features.Auth.DependencyRegistration;
 using CryptoBank.WebAPI.Features.Auth.Options;
+using CryptoBank.WebAPI.Features.Deposits.DependencyRegistration;
 using CryptoBank.WebAPI.Features.Users.DependencyRegistration;
 using CryptoBank.WebAPI.Pipeline;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -65,9 +66,12 @@ builder.Services.AddCommonProject();
 builder.Services.AddDatabaseProject(builder.Configuration);
 
 builder.Services.AddCommon(builder.Configuration);
-builder.Services.AddAccounts(builder.Configuration);
-builder.Services.AddAuth(builder.Configuration);
-builder.Services.AddUsers(builder.Configuration);
+
+builder.Services
+    .AddAccounts(builder.Configuration)
+    .AddAuth(builder.Configuration)
+    .AddDeposits(builder.Configuration)
+    .AddUsers(builder.Configuration);
 
 builder.Services.EnsureValidatorsAreRegistered<Program>();
 
