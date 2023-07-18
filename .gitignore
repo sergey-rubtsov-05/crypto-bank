@@ -7,3 +7,4 @@ riderModule.iml
 *.DotSettings.user
 *.csproj.user
 .vs/
+.idea/config/applicationhost.config

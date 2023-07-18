@@ -3,6 +3,7 @@ using System;
 using CryptoBank.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CryptoBank.Database.Migrations
 {
     [DbContext(typeof(CryptoBankDbContext))]
-    partial class CryptoBankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230707112607_AddXpubTable")]
+    partial class AddXpubTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,47 +53,6 @@ namespace CryptoBank.Database.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("accounts", (string)null);
-                });
-
-            modelBuilder.Entity("CryptoBank.Domain.Models.DepositAddress", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CryptoAddress")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("crypto_address");
-
-                    b.Property<string>("CurrencyCode")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("currency_code");
-
-                    b.Property<long>("DerivationIndex")
-                        .HasColumnType("bigint")
-                        .HasColumnName("derivation_index");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("XpubId")
-                        .HasColumnType("integer")
-                        .HasColumnName("xpub_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.HasIndex("XpubId");
-
-                    b.ToTable("deposit_addresses", (string)null);
                 });
 
             modelBuilder.Entity("CryptoBank.Domain.Models.Token", b =>
@@ -176,16 +138,12 @@ namespace CryptoBank.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CurrencyCode")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("currency_code");
-
-                    b.Property<long>("LastUsedDerivationIndex")
-                        .HasColumnType("bigint")
-                        .HasColumnName("last_used_derivation_index");
 
                     b.Property<string>("Value")
                         .IsRequired()
@@ -206,25 +164,6 @@ namespace CryptoBank.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CryptoBank.Domain.Models.DepositAddress", b =>
-                {
-                    b.HasOne("CryptoBank.Domain.Models.User", "User")
-                        .WithOne()
-                        .HasForeignKey("CryptoBank.Domain.Models.DepositAddress", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CryptoBank.Domain.Models.Xpub", "Xpub")
-                        .WithMany()
-                        .HasForeignKey("XpubId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-
-                    b.Navigation("Xpub");
                 });
 
             modelBuilder.Entity("CryptoBank.Domain.Models.Token", b =>
