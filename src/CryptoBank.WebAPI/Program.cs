@@ -16,6 +16,7 @@ using CryptoBank.WebAPI.Features.Users.DependencyRegistration;
 using CryptoBank.WebAPI.Pipeline;
 using CryptoBank.WebAPI.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -79,6 +80,13 @@ builder.Services
 builder.Services.EnsureValidatorsAreRegistered<Program>();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
