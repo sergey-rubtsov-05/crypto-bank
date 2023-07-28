@@ -11,6 +11,15 @@ public record DepositAddress
         XpubId = xpubId;
     }
 
+    public DepositAddress(string currencyCode, uint derivationIndex, string cryptoAddress, User user, Xpub xpub)
+    {
+        CurrencyCode = currencyCode;
+        DerivationIndex = derivationIndex;
+        CryptoAddress = cryptoAddress;
+        User = user;
+        Xpub = xpub;
+    }
+
     public int Id { get; init; }
     public string CurrencyCode { get; init; }
     public int UserId { get; init; }

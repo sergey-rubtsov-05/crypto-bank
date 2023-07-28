@@ -1,11 +1,12 @@
+using System.Diagnostics;
 using CryptoBank.Common;
 using CryptoBank.Database;
 using CryptoBank.Domain.Authorization;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Bitcoin;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using NBitcoin;
@@ -20,6 +21,7 @@ public class BlockchainDepositScannerTests : IAsyncLifetime
     private readonly WebApplicationFactory<Program> _factory;
 
     private CancellationToken _cancellationToken;
+    private CancellationTokenSource _cancellationTokenSource;
     private IClock _clock;
     private AsyncServiceScope _scope;
 
@@ -51,8 +53,9 @@ public class BlockchainDepositScannerTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        _cancellationToken = cancellationTokenSource.Token;
+        var delay = Debugger.IsAttached ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
+        _cancellationTokenSource = new CancellationTokenSource(delay);
+        _cancellationToken = _cancellationTokenSource.Token;
 
         await _bitcoin.Start(_factory, _cancellationToken);
         await _database.Start(_factory, _cancellationToken);
@@ -79,46 +82,90 @@ public class BlockchainDepositScannerTests : IAsyncLifetime
         await client.GenerateToAddressAsync(101, bitcoinAddress);
     }
 
-    private async Task WaitForCryptoDepositCreation()
+    private async Task WaitForCryptoDepositCreation(int expectedCount)
     {
         while (true)
         {
-            var recordWasCreated = await _database.Execute(
-                dbContext => dbContext.CryptoDeposits.AnyAsync(_cancellationToken));
+            var actualCount = await _database.Execute(
+                dbContext => dbContext.CryptoDeposits.CountAsync(_cancellationToken));
 
-            if (recordWasCreated)
+            if (actualCount >= expectedCount)
                 break;
+        }
+    }
+
+    private async Task<List<BitcoinPubKeyAddress>> CreateBitcoinAddresses(CryptoBankDbContext dbContext, int number)
+    {
+        var xpub = await dbContext.Xpubs.SingleAsync(_cancellationToken);
+        var masterExtPubKey = new BitcoinExtPubKey(xpub.Value, Network.RegTest).ExtPubKey;
+
+        var userAddresses = new List<BitcoinPubKeyAddress>();
+
+        for (var i = 1; i <= number; i++)
+        {
+            var user = new User($"anyEmail{i}", $"anyPasswordHash{i}", null, _clock.UtcNow, new[] { Role.User });
+            var derivationIndex = (uint)i;
+
+            var userPubKey = masterExtPubKey.Derive(derivationIndex).PubKey;
+            var userBitcoinAddress = userPubKey.Hash.GetAddress(Network.RegTest);
+            var depositAddress = new DepositAddress("BTC", derivationIndex, userBitcoinAddress.ToString(), user, xpub);
+
+            userAddresses.Add(userBitcoinAddress);
+            await dbContext.Users.AddAsync(user, _cancellationToken);
+            await dbContext.DepositAddresses.AddAsync(depositAddress, _cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(_cancellationToken);
+
+        return userAddresses;
+    }
+
+    [Fact]
+    public async Task BlockWithTransferToTwoUserDepositAddress_TwoCryptoDepositShouldBeCreated()
+    {
+        var bitcoinAddresses = await _database.Execute(
+            async dbContext => await CreateBitcoinAddresses(dbContext, 2));
+
+        var client = await _bitcoin.CreateClientWithWallet();
+
+        await Mine50Btc(client);
+
+        var expectedDeposits = new List<(BitcoinPubKeyAddress toAddress, decimal amount)>();
+        decimal initAmountBtc = 5;
+
+        foreach (var userAddress in bitcoinAddresses)
+        {
+            var amountBtc = initAmountBtc += 10;
+            await client.SendToAddressAsync(
+                userAddress,
+                new Money(amountBtc, MoneyUnit.BTC),
+                new SendToAddressParameters { FeeRate = new FeeRate(1m) },
+                _cancellationToken);
+
+            expectedDeposits.Add((userAddress, amountBtc));
+        }
+
+        await client.GenerateAsync(1, _cancellationToken);
+
+        await WaitForCryptoDepositCreation(expectedDeposits.Count);
+
+        foreach (var (expectedAddress, expectedAmount) in expectedDeposits)
+        {
+            await _database.ShouldContainDeposit(expectedAddress, expectedAmount, _cancellationToken);
         }
     }
 
     [Fact]
     public async Task BlockWithTransferToUserDepositAddress_CryptoDepositShouldBeCreated()
     {
-        var userAddress = await _database.Execute(
-            async dbContext =>
-            {
-                var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-                dbContext.Users.Add(user);
-                await dbContext.SaveChangesAsync(_cancellationToken);
-
-                var xpub = await dbContext.Xpubs.SingleAsync(_cancellationToken);
-                var masterExtPubKey = new BitcoinExtPubKey(xpub.Value, Network.RegTest).ExtPubKey;
-                var derivationIndex = xpub.LastUsedDerivationIndex + 1;
-                var userPubKey = masterExtPubKey.Derive(derivationIndex).PubKey;
-                var userAddress = userPubKey.Hash.GetAddress(Network.RegTest);
-
-                dbContext.DepositAddresses.Add(
-                    new DepositAddress("BTC", derivationIndex, userAddress.ToString(), user.Id, xpub.Id));
-
-                await dbContext.SaveChangesAsync(_cancellationToken);
-
-                return userAddress;
-            });
+        var userAddresses = await _database.Execute(
+            dbContext => CreateBitcoinAddresses(dbContext, 1));
 
         var client = await _bitcoin.CreateClientWithWallet();
 
         await Mine50Btc(client);
 
+        var userAddress = userAddresses.Single();
         const int expectedAmountBtc = 28;
         await client.SendToAddressAsync(
             userAddress,
@@ -128,18 +175,8 @@ public class BlockchainDepositScannerTests : IAsyncLifetime
 
         await client.GenerateAsync(1, _cancellationToken);
 
-        await WaitForCryptoDepositCreation();
+        await WaitForCryptoDepositCreation(1);
 
-        var actualDeposit = await _database.Execute(
-            dbContext =>
-                dbContext.CryptoDeposits.SingleOrDefaultAsync(
-                    deposit => deposit.Address.CryptoAddress == userAddress.ToString(),
-                    _cancellationToken));
-
-        actualDeposit.Should().NotBeNull();
-        actualDeposit.Amount.Should().Be(expectedAmountBtc);
-        actualDeposit.Confirmations.Should().Be(0);
-        actualDeposit.Status.Should().Be(DepositStatus.Created);
-        actualDeposit.CurrencyCode.Should().Be("BTC");
+        await _database.ShouldContainDeposit(userAddress, expectedAmountBtc, _cancellationToken);
     }
 }

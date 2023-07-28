@@ -61,46 +61,59 @@ public class BlockchainDepositScanner : BackgroundService
 
         await using var scope = _serviceScopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
-        //todo: in production we will have more than one deposit address
-        var depositAddress = await dbContext.DepositAddresses.SingleOrDefaultAsync(stoppingToken);
-        if (depositAddress == null)
-            return;
+        var addresses = await dbContext.DepositAddresses.ToListAsync(stoppingToken);
 
-        var cryptoAddress = depositAddress.CryptoAddress;
+        if (!addresses.Any())
+            return;
 
         for (var height = _lastUsedHeight + 1; height <= blockCount; height++)
         {
             var block = await bitcoinClient.GetBlockAsync(height, stoppingToken);
-            var cryptoDeposits = block.Transactions
-                .SelectMany(
-                    transaction => transaction.Outputs,
-                    (transaction, output) => new { Id = transaction.GetHash().ToString(), Output = output })
-                .Select(
-                    tx => new
-                    {
-                        tx.Id,
-                        DestinationAddress =
-                            tx.Output.ScriptPubKey.GetDestinationAddress(bitcoinClient.Network)?.ToString(),
-                        Amount = tx.Output.Value,
-                    })
-                .Where(tx => tx.DestinationAddress == cryptoAddress)
-                .Select(
-                    tx => new CryptoDeposit(
-                        depositAddress.UserId,
-                        depositAddress.Id,
-                        tx.Amount.ToDecimal(MoneyUnit.BTC),
-                        "BTC",
-                        _clock.UtcNow,
-                        tx.Id))
-                .ToList();
 
-            foreach (var cryptoDeposit in cryptoDeposits)
+            var deposits = GetDeposits(block, bitcoinClient.Network, addresses).ToList();
+
+            if (deposits.Any())
             {
-                dbContext.CryptoDeposits.Add(cryptoDeposit);
+                dbContext.CryptoDeposits.AddRange(deposits);
                 await dbContext.SaveChangesAsync(stoppingToken);
             }
-        }
 
-        _lastUsedHeight = blockCount;
+            _lastUsedHeight = height;
+        }
+    }
+
+    private IEnumerable<CryptoDeposit> GetDeposits(Block block, Network network, IEnumerable<DepositAddress> addresses)
+    {
+        var transactions = block.Transactions
+            .SelectMany(
+                transaction => transaction.Outputs,
+                (transaction, output) => new
+                {
+                    Id = transaction.GetHash().ToString(),
+                    DestinationAddress =
+                        output.ScriptPubKey.GetDestinationAddress(network)?.ToString(),
+                    Amount = output.Value,
+                });
+
+        var deposits = transactions
+            .Join(
+                addresses,
+                transaction => transaction.DestinationAddress,
+                address => address.CryptoAddress,
+                (transaction, address) => new CryptoDeposit(
+                    address.UserId,
+                    address.Id,
+                    transaction.Amount.ToDecimal(MoneyUnit.BTC),
+                    address.CurrencyCode,
+                    _clock.UtcNow,
+                    transaction.Id));
+
+        return deposits;
+    }
+
+    public override void Dispose()
+    {
+        _lastUsedHeight = -1;
+        base.Dispose();
     }
 }
