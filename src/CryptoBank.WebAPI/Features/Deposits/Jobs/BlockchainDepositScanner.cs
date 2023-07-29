@@ -6,80 +6,108 @@ using CryptoBank.WebAPI.Features.Deposits.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NBitcoin;
+using NBitcoin.RPC;
 
 namespace CryptoBank.WebAPI.Features.Deposits.Jobs;
 
 public class BlockchainDepositScanner : BackgroundService
 {
-    private static int _lastUsedHeight = -1;
-
     private readonly BitcoinClientFactory _bitcoinClientFactory;
     private readonly IClock _clock;
     private readonly DepositsOptions _depositsOptions;
+    private readonly ILogger<BlockchainDepositScanner> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public BlockchainDepositScanner(
         BitcoinClientFactory bitcoinClientFactory,
         IClock clock,
         IOptions<DepositsOptions> depositsOptions,
+        ILogger<BlockchainDepositScanner> logger,
         IServiceScopeFactory serviceScopeFactory)
     {
         _bitcoinClientFactory = bitcoinClientFactory;
         _clock = clock;
         _depositsOptions = depositsOptions.Value;
+        _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         while (true)
         {
-            if (stoppingToken.IsCancellationRequested)
-                return;
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await InnerExecuteAsync(stoppingToken);
+                await InnerExecuteAsync(cancellationToken);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError(e, "Error while scanning bitcoin blockchain");
             }
 
-            await Task.Delay(_depositsOptions.BitcoinBlockchainScanInterval, stoppingToken);
+            await Task.Delay(_depositsOptions.BitcoinBlockchainScanInterval, cancellationToken);
         }
     }
 
-    private async Task InnerExecuteAsync(CancellationToken stoppingToken)
+    private async Task InnerExecuteAsync(CancellationToken cancellationToken)
     {
-        var bitcoinClient = _bitcoinClientFactory.Create();
-
-        //todo: potential problem: what if multiple instances of this service executing at the same time?
-        var blockCount = await bitcoinClient.GetBlockCountAsync(stoppingToken);
-        if (blockCount <= _lastUsedHeight)
-            return;
-
         await using var scope = _serviceScopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
-        var addresses = await dbContext.DepositAddresses.ToListAsync(stoppingToken);
+        var bitcoinClient = _bitcoinClientFactory.Create();
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var lastProcessedBlockHeight = await GetLastProcessedBlockHeight(dbContext, bitcoinClient, cancellationToken);
+
+        var blockCount = await bitcoinClient.GetBlockCountAsync(cancellationToken);
+        if (blockCount <= lastProcessedBlockHeight)
+            return;
+
+        var addresses = await dbContext.DepositAddresses.ToListAsync(cancellationToken);
 
         if (!addresses.Any())
             return;
 
-        for (var height = _lastUsedHeight + 1; height <= blockCount; height++)
+        for (var height = lastProcessedBlockHeight + 1; height <= blockCount; height++)
         {
-            var block = await bitcoinClient.GetBlockAsync(height, stoppingToken);
+            var block = await bitcoinClient.GetBlockAsync(height, cancellationToken);
 
             var deposits = GetDeposits(block, bitcoinClient.Network, addresses).ToList();
 
             if (deposits.Any())
             {
                 dbContext.CryptoDeposits.AddRange(deposits);
-                await dbContext.SaveChangesAsync(stoppingToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
 
-            _lastUsedHeight = height;
+            await dbContext.BitcoinBlockchainStatuses.ExecuteUpdateAsync(
+                calls => calls.SetProperty(status => status.LastProcessedBlockHeight, height),
+                cancellationToken);
         }
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private static async Task<int> GetLastProcessedBlockHeight(
+        CryptoBankDbContext dbContext,
+        RPCClient bitcoinClient,
+        CancellationToken cancellationToken)
+    {
+        var bitcoinBlockchainStatus = await dbContext.BitcoinBlockchainStatuses
+            .FromSql($"SELECT * FROM bitcoin_blockchain_statuses FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (bitcoinBlockchainStatus != null)
+            return bitcoinBlockchainStatus.LastProcessedBlockHeight;
+
+        var currentHeight = await bitcoinClient.GetBlockCountAsync(cancellationToken);
+
+        var lastProcessedBlockHeight = bitcoinBlockchainStatus?.LastProcessedBlockHeight ?? currentHeight - 1;
+        dbContext.BitcoinBlockchainStatuses.Add(new BitcoinBlockchainStatus(lastProcessedBlockHeight));
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return lastProcessedBlockHeight;
     }
 
     private IEnumerable<CryptoDeposit> GetDeposits(Block block, Network network, IEnumerable<DepositAddress> addresses)
@@ -109,11 +137,5 @@ public class BlockchainDepositScanner : BackgroundService
                     transaction.Id));
 
         return deposits;
-    }
-
-    public override void Dispose()
-    {
-        _lastUsedHeight = -1;
-        base.Dispose();
     }
 }

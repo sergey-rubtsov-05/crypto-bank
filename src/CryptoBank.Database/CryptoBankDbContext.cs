@@ -12,6 +12,7 @@ public class CryptoBankDbContext : DbContext
     }
 
     public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<BitcoinBlockchainStatus> BitcoinBlockchainStatuses => Set<BitcoinBlockchainStatus>();
     public DbSet<CryptoDeposit> CryptoDeposits => Set<CryptoDeposit>();
     public DbSet<DepositAddress> DepositAddresses => Set<DepositAddress>();
     public DbSet<Token> Tokens => Set<Token>();
@@ -21,6 +22,7 @@ public class CryptoBankDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         AccountMap.Create(modelBuilder);
+        BitcoinBlockchainStatusMap.Create(modelBuilder);
         CryptoDepositMap.Create(modelBuilder);
         DepositAddressMap.Create(modelBuilder);
         TokenMap.Create(modelBuilder);
