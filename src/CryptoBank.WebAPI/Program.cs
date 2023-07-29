@@ -14,6 +14,7 @@ using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Deposits.DependencyRegistration;
 using CryptoBank.WebAPI.Features.Users.DependencyRegistration;
 using CryptoBank.WebAPI.Pipeline;
+using CryptoBank.WebAPI.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -29,6 +30,8 @@ builder.Services.AddSingleton<Dispatcher>();
 builder.Services
     .AddControllers(options => options.ModelValidatorProviders.Clear())
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddSwagger();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -81,6 +84,9 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
 
