@@ -49,6 +49,7 @@ public class BlockchainDepositScanner : BackgroundService
 
             await Task.Delay(_depositsOptions.BitcoinBlockchainScanInterval, cancellationToken);
         }
+        // ReSharper disable once FunctionNeverReturns
     }
 
     private async Task InnerExecuteAsync(CancellationToken cancellationToken)

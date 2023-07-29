@@ -1,3 +1,4 @@
+using CryptoBank.Database.Initialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +12,12 @@ public static class DatabaseProjectServiceCollectionExtensions
         IConfiguration configuration)
     {
         //todo store password in secure place
-        services.AddDbContext<CryptoBankDbContext>(
-            optionsBuilder => optionsBuilder.UseNpgsql(
-                configuration.GetConnectionString("CryptoBankDb"),
-                npgsqlOptions => npgsqlOptions.UseAdminDatabase("postgres")));
+        services
+            .AddDbContext<CryptoBankDbContext>(
+                optionsBuilder => optionsBuilder.UseNpgsql(
+                    configuration.GetConnectionString("CryptoBankDb"),
+                    npgsqlOptions => npgsqlOptions.UseAdminDatabase("postgres")))
+            .AddHostedService<DatabaseMigrationHostedService>();
 
         return services;
     }
