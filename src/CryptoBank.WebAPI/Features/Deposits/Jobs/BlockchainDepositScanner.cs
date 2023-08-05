@@ -102,7 +102,7 @@ public class BlockchainDepositScanner : BackgroundService
 
         var currentHeight = await bitcoinClient.GetBlockCountAsync(cancellationToken);
 
-        var lastProcessedBlockHeight = bitcoinBlockchainStatus?.LastProcessedBlockHeight ?? currentHeight - 1;
+        var lastProcessedBlockHeight = currentHeight - 1;
         dbContext.BitcoinBlockchainStatuses.Add(new BitcoinBlockchainStatus(lastProcessedBlockHeight));
         await dbContext.SaveChangesAsync(cancellationToken);
         return lastProcessedBlockHeight;
@@ -132,7 +132,7 @@ public class BlockchainDepositScanner : BackgroundService
                     transaction.Amount.ToDecimal(MoneyUnit.BTC),
                     address.CurrencyCode,
                     _clock.UtcNow,
-                    transaction.Id));
+                    transaction.Id!));
 
         return deposits;
     }
