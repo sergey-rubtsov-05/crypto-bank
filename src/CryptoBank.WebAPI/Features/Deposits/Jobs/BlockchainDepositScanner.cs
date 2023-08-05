@@ -34,10 +34,8 @@ public class BlockchainDepositScanner : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             try
             {
                 await InnerExecuteAsync(cancellationToken);
@@ -49,7 +47,6 @@ public class BlockchainDepositScanner : BackgroundService
 
             await Task.Delay(_depositsOptions.BitcoinBlockchainScanInterval, cancellationToken);
         }
-        // ReSharper disable once FunctionNeverReturns
     }
 
     private async Task InnerExecuteAsync(CancellationToken cancellationToken)
