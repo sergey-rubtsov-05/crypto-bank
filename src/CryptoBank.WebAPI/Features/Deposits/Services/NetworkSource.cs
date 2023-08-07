@@ -19,6 +19,7 @@ public class NetworkSource
         {
             BitcoinNetwork.Main => Network.Main,
             BitcoinNetwork.Test => Network.TestNet,
+            BitcoinNetwork.RegTest => Network.RegTest,
             _ => throw new ArgumentOutOfRangeException(nameof(_depositsOptions.BitcoinNetwork)),
         };
     }
