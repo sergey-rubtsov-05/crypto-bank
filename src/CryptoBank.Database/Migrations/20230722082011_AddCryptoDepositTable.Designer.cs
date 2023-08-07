@@ -3,6 +3,7 @@ using System;
 using CryptoBank.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CryptoBank.Database.Migrations
 {
     [DbContext(typeof(CryptoBankDbContext))]
-    partial class CryptoBankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230722082011_AddCryptoDepositTable")]
+    partial class AddCryptoDepositTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,24 +53,6 @@ namespace CryptoBank.Database.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("accounts", (string)null);
-                });
-
-            modelBuilder.Entity("CryptoBank.Domain.Models.BitcoinBlockchainStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("LastProcessedBlockHeight")
-                        .HasColumnType("integer")
-                        .HasColumnName("last_processed_block_height");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("bitcoin_blockchain_statuses", (string)null);
                 });
 
             modelBuilder.Entity("CryptoBank.Domain.Models.CryptoDeposit", b =>
