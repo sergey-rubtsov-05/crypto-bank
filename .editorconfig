@@ -68,6 +68,12 @@ dotnet_naming_symbols.constant_fields.applicable_kinds = field
 dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 ###############################
+# Roslyn Rules          #
+###############################
+# noinspection EditorConfigKeyCorrectness
+dotnet_diagnostic.CA1068.severity = warning
+
+###############################
 # C# Coding Conventions       #
 ###############################
 [*.cs]

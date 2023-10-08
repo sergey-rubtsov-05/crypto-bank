@@ -1,4 +1,3 @@
-using CryptoBank.Database;
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using FluentAssertions;
@@ -7,10 +6,10 @@ using NBitcoin;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
 
-public static class DatabaseAssertionExtensions
+public static class AssertionExtensions
 {
     public static async Task ShouldContainDeposit(
-        this DatabaseHarness<Program, CryptoBankDbContext> database,
+        this DatabaseHarness<Program> database,
         BitcoinPubKeyAddress userAddress,
         decimal expectedAmountBtc,
         CancellationToken cancellationToken = default)
@@ -26,5 +25,23 @@ public static class DatabaseAssertionExtensions
         actualDeposit.Confirmations.Should().Be(0);
         actualDeposit.Status.Should().Be(DepositStatus.Created);
         actualDeposit.CurrencyCode.Should().Be("BTC");
+    }
+
+    public static void ShouldBePending(this CryptoDeposit actualDeposit, uint expectedConfirmations)
+    {
+        actualDeposit.Should().NotBeNull();
+        actualDeposit.Confirmations.Should().Be(expectedConfirmations);
+        actualDeposit.Status.Should().Be(DepositStatus.Pending);
+    }
+
+    public static void ShouldBeConfirmed(
+        this CryptoDeposit actualDeposit,
+        uint expectedConfirmations,
+        DateTimeOffset expectedConfirmedAt)
+    {
+        actualDeposit.Should().NotBeNull();
+        actualDeposit.Confirmations.Should().Be(expectedConfirmations);
+        actualDeposit.Status.Should().Be(DepositStatus.Confirmed);
+        actualDeposit.ConfirmedAt.Should().Be(expectedConfirmedAt);
     }
 }

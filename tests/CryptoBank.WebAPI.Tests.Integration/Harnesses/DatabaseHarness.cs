@@ -1,13 +1,12 @@
+using CryptoBank.Database;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Harnesses;
 
-public class DatabaseHarness<TProgram, TDbContext> : IHarness<TProgram>
+public class DatabaseHarness<TProgram> : IHarness<TProgram>
     where TProgram : class
-    where TDbContext : DbContext
 {
     private string _connectionString;
     private WebApplicationFactory<TProgram> _factory;
@@ -42,17 +41,17 @@ public class DatabaseHarness<TProgram, TDbContext> : IHarness<TProgram>
         await _postgresContainer.DisposeAsync();
     }
 
-    public async Task Execute(Func<TDbContext, Task> action)
+    public async Task Execute(Func<CryptoBankDbContext, Task> action)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         await action(dbContext);
     }
 
-    public async Task<T> Execute<T>(Func<TDbContext, Task<T>> action)
+    public async Task<T> Execute<T>(Func<CryptoBankDbContext, Task<T>> action)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         return await action(dbContext);
     }
 }

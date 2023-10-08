@@ -5,6 +5,7 @@ public record DepositsOptions
     public TimeSpan BitcoinBlockchainScanInterval { get; init; }
     public BitcoinNetwork BitcoinNetwork { get; init; }
     public BitcoinClientOptions BitcoinClient { get; init; } = null!;
+    public int BitcoinTxConfirmationCount { get; init; }
 }
 
 public record BitcoinClientOptions
