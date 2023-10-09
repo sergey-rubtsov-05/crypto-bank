@@ -61,7 +61,7 @@ public class BlockchainDepositScannerTests : IAsyncLifetime
         _scope = _factory.Services.CreateAsyncScope();
 
         _clock = _scope.ServiceProvider.GetRequiredService<IClock>();
-        _helper = new Helper(_cancellationToken, _clock, _database);
+        _helper = new Helper(_clock, _database, _cancellationToken);
     }
 
     public async Task DisposeAsync()

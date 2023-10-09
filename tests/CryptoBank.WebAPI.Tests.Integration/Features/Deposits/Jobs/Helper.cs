@@ -14,11 +14,11 @@ internal class Helper
     private readonly IClock _clock;
     private readonly DatabaseHarness<Program> _database;
 
-    public Helper(CancellationToken cancellationToken, IClock clock, DatabaseHarness<Program> database)
+    public Helper(IClock clock, DatabaseHarness<Program> database, CancellationToken cancellationToken)
     {
-        _cancellationToken = cancellationToken;
         _clock = clock;
         _database = database;
+        _cancellationToken = cancellationToken;
     }
 
     public async Task Mine50Btc(RPCClient client)
@@ -59,12 +59,18 @@ internal class Helper
                         _clock.UtcNow,
                         new[] { Role.User });
 
+                    const string currencyCode = "BTC";
+                    var account = new Account($"ACC{i}")
+                    {
+                        User = user, Currency = currencyCode, OpenedAt = _clock.UtcNow,
+                    };
+
                     var derivationIndex = (uint)i;
 
                     var userPubKey = masterExtPubKey.Derive(derivationIndex).PubKey;
                     var userBitcoinAddress = userPubKey.Hash.GetAddress(Network.RegTest);
                     var depositAddress = new DepositAddress(
-                        "BTC",
+                        currencyCode,
                         derivationIndex,
                         userBitcoinAddress.ToString(),
                         user,
@@ -72,6 +78,7 @@ internal class Helper
 
                     userAddresses.Add(userBitcoinAddress);
                     await dbContext.Users.AddAsync(user, _cancellationToken);
+                    await dbContext.Accounts.AddAsync(account, _cancellationToken);
                     await dbContext.DepositAddresses.AddAsync(depositAddress, _cancellationToken);
                 }
 

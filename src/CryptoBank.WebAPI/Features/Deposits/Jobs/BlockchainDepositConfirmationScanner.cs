@@ -1,6 +1,8 @@
 using CryptoBank.Common;
 using CryptoBank.Database;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Common.Errors.Exceptions;
+using CryptoBank.WebAPI.Features.Deposits.Errors;
 using CryptoBank.WebAPI.Features.Deposits.Options;
 using CryptoBank.WebAPI.Features.Deposits.Services;
 using Microsoft.EntityFrameworkCore;
@@ -66,9 +68,14 @@ public class BlockchainDepositConfirmationScanner : BackgroundService
             var confirmations = await LoadConfirmationsCount(bitcoinClient, deposit.TxId, cancellationToken);
 
             if (confirmations < _depositsOptions.BitcoinTxConfirmationCount)
+            {
                 await UpdateDepositAsPending(dbContext, deposit.Id, confirmations, cancellationToken);
+            }
             else
+            {
                 await UpdateDepositAsConfirmed(dbContext, deposit.Id, confirmations, cancellationToken);
+                await DepositAmountToAccount(dbContext, deposit, cancellationToken);
+            }
 
             await transaction.CommitAsync(cancellationToken);
         }
@@ -136,6 +143,30 @@ FOR UPDATE")
                     .SetProperty(x => x.Confirmations, confirmationsCount)
                     .SetProperty(x => x.Status, DepositStatus.Confirmed)
                     .SetProperty(x => x.ConfirmedAt, _clock.UtcNow),
+                cancellationToken);
+    }
+
+    private static async Task DepositAmountToAccount(
+        CryptoBankDbContext dbContext,
+        CryptoDeposit deposit,
+        CancellationToken cancellationToken)
+    {
+        var account = await dbContext.Accounts
+            .FromSql(
+                $@"
+SELECT *
+FROM accounts
+WHERE user_id = {deposit.UserId} AND currency = {deposit.CurrencyCode}
+FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (account is null)
+            throw new LogicConflictException(DepositsLogicConflictError.CouldNotFindAccountForDeposit);
+
+        await dbContext.Accounts
+            .Where(x => x.Number == account.Number)
+            .ExecuteUpdateAsync(
+                calls => calls.SetProperty(x => x.Amount, account.Amount + deposit.Amount),
                 cancellationToken);
     }
 }

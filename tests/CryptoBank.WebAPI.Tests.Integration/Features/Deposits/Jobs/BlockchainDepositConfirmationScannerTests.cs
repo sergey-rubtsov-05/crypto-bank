@@ -16,6 +16,8 @@ namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.Jobs;
 
 public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
 {
+    private const int AnyAmountBtc = 28;
+
     private readonly BitcoinHarness<Program> _bitcoin;
     private readonly Mock<IClock> _clockMock;
     private readonly DatabaseHarness<Program> _database;
@@ -72,7 +74,7 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
         var _ = _factory.Server;
         _scope = _factory.Services.CreateAsyncScope();
 
-        _helper = new Helper(_cancellationToken, _clockMock.Object, _database);
+        _helper = new Helper(_clockMock.Object, _database, _cancellationToken);
     }
 
     public async Task DisposeAsync()
@@ -84,22 +86,13 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
         await _bitcoin.Stop();
     }
 
-    private async Task<CryptoDeposit> LoadCryptoDeposit(long cryptoDepositId)
-    {
-        return await _database.Execute(
-            dbContext => dbContext.CryptoDeposits.SingleAsync(
-                x => x.Id == cryptoDepositId,
-                _cancellationToken));
-    }
-
-    private async Task<CryptoDeposit> CreateCryptoDeposit(RPCClient client)
+    private async Task<CryptoDeposit> CreateCryptoDeposit(RPCClient client, int amountBtc = AnyAmountBtc)
     {
         var userAddresses = await _helper.CreateBitcoinAddresses(1);
         var userAddress = userAddresses.Single();
-        const int expectedAmountBtc = 28;
         await client.SendToAddressAsync(
             userAddress,
-            new Money(expectedAmountBtc, MoneyUnit.BTC),
+            new Money(amountBtc, MoneyUnit.BTC),
             new SendToAddressParameters { FeeRate = new FeeRate(1m) },
             _cancellationToken);
 
@@ -120,7 +113,8 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
 
         await _helper.Mine50Btc(client);
 
-        var cryptoDeposit = await CreateCryptoDeposit(client);
+        const int expectedAmount = 15;
+        var cryptoDeposit = await CreateCryptoDeposit(client, expectedAmount);
 
         var expectedConfirmationTime = cryptoDeposit.CreatedAt.UtcDateTime + TimeSpan.FromMinutes(1);
         _clockMock.Setup(clock => clock.UtcNow).Returns(expectedConfirmationTime);
@@ -129,8 +123,13 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
         await client.GenerateAsync(numberOfConfirmationBlocks, _cancellationToken);
         await Task.Delay(_scanInterval + TimeSpan.FromSeconds(1), _cancellationToken);
 
-        var actualCryptoDeposit = await LoadCryptoDeposit(cryptoDeposit.Id);
-        actualCryptoDeposit.ShouldBeConfirmed(numberOfConfirmationBlocks + 1, expectedConfirmationTime);
+        await _database.DepositShouldBeConfirmed(
+            cryptoDeposit.Id,
+            numberOfConfirmationBlocks + 1,
+            expectedConfirmationTime,
+            _cancellationToken);
+
+        await _database.AccountShouldBeUpdated(cryptoDeposit.UserId, expectedAmount, _cancellationToken);
     }
 
     [Fact]
@@ -149,7 +148,10 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
         await client.GenerateAsync(numberOfConfirmationBlocks, _cancellationToken);
         await Task.Delay(_scanInterval + TimeSpan.FromSeconds(1), _cancellationToken);
 
-        var actualCryptoDeposit = await LoadCryptoDeposit(cryptoDeposit.Id);
-        actualCryptoDeposit.ShouldBePending(numberOfConfirmationBlocks + 1, expectedScannedTime);
+        await _database.DepositShouldBePending(
+            cryptoDeposit.Id,
+            numberOfConfirmationBlocks + 1,
+            expectedScannedTime,
+            _cancellationToken);
     }
 }
