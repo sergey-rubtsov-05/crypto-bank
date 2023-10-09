@@ -27,11 +27,15 @@ public static class AssertionExtensions
         actualDeposit.CurrencyCode.Should().Be("BTC");
     }
 
-    public static void ShouldBePending(this CryptoDeposit actualDeposit, uint expectedConfirmations)
+    public static void ShouldBePending(
+        this CryptoDeposit actualDeposit,
+        uint expectedConfirmations,
+        DateTimeOffset expectedScannedTime)
     {
         actualDeposit.Should().NotBeNull();
         actualDeposit.Confirmations.Should().Be(expectedConfirmations);
         actualDeposit.Status.Should().Be(DepositStatus.Pending);
+        actualDeposit.ScannedAt.Should().Be(expectedScannedTime);
     }
 
     public static void ShouldBeConfirmed(

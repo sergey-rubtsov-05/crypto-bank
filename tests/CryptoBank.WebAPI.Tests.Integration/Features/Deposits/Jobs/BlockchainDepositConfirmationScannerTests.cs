@@ -142,11 +142,14 @@ public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
 
         var cryptoDeposit = await CreateCryptoDeposit(client);
 
+        var expectedScannedTime = cryptoDeposit.CreatedAt.UtcDateTime + TimeSpan.FromMinutes(1);
+        _clockMock.Setup(clock => clock.UtcNow).Returns(expectedScannedTime);
+
         const int numberOfConfirmationBlocks = 2;
         await client.GenerateAsync(numberOfConfirmationBlocks, _cancellationToken);
         await Task.Delay(_scanInterval + TimeSpan.FromSeconds(1), _cancellationToken);
 
         var actualCryptoDeposit = await LoadCryptoDeposit(cryptoDeposit.Id);
-        actualCryptoDeposit.ShouldBePending(numberOfConfirmationBlocks + 1);
+        actualCryptoDeposit.ShouldBePending(numberOfConfirmationBlocks + 1, expectedScannedTime);
     }
 }

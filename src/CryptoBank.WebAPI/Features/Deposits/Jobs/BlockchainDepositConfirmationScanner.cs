@@ -55,36 +55,43 @@ public class BlockchainDepositConfirmationScanner : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         var bitcoinClient = _bitcoinClientFactory.Create();
 
-        var unconfirmedDeposits = await LoadUnconfirmedDeposits(dbContext, cancellationToken);
-
-        foreach (var deposit in unconfirmedDeposits)
+        while (true)
         {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var deposit = await LoadUnconfirmedDeposit(dbContext, cancellationToken);
+
+            if (deposit is null)
+                return;
+
             var confirmations = await LoadConfirmationsCount(bitcoinClient, deposit.TxId, cancellationToken);
 
-            if (confirmations is null)
-                continue;
+            if (confirmations < _depositsOptions.BitcoinTxConfirmationCount)
+                await UpdateDepositAsPending(dbContext, deposit.Id, confirmations, cancellationToken);
+            else
+                await UpdateDepositAsConfirmed(dbContext, deposit.Id, confirmations, cancellationToken);
 
-            if (confirmations.Value < _depositsOptions.BitcoinTxConfirmationCount)
-            {
-                await SetDepositAsPending(dbContext, deposit.Id, confirmations.Value, cancellationToken);
-
-                continue;
-            }
-
-            await SetDepositAsConfirmed(dbContext, deposit.Id, confirmations.Value, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
     }
 
-    private static async Task<List<CryptoDeposit>> LoadUnconfirmedDeposits(
+    private async Task<CryptoDeposit?> LoadUnconfirmedDeposit(
         CryptoBankDbContext dbContext,
         CancellationToken cancellationToken)
     {
         return await dbContext.CryptoDeposits
-            .Where(deposit => deposit.Status != DepositStatus.Confirmed)
-            .ToListAsync(cancellationToken);
+            .FromSql(
+                @$"
+SELECT *
+FROM crypto_deposits
+WHERE status != {DepositStatus.Confirmed} AND
+      ((scanned_at IS NULL) OR
+       (scanned_at + {_depositsOptions.BitcoinBlockchainScanInterval} < {_clock.UtcNow}))
+ORDER BY scanned_at
+FOR UPDATE")
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private static async Task<uint?> LoadConfirmationsCount(
+    private static async Task<uint> LoadConfirmationsCount(
         RPCClient bitcoinClient,
         string depositTxId,
         CancellationToken cancellationToken)
@@ -96,11 +103,11 @@ public class BlockchainDepositConfirmationScanner : BackgroundService
             uint256.Parse(depositTxId),
             asJson);
 
-        var confirmations = rpcResponse.Result.Value<uint?>("confirmations");
+        var confirmations = rpcResponse.Result.Value<uint?>("confirmations") ?? 0;
         return confirmations;
     }
 
-    private static async Task SetDepositAsPending(
+    private async Task UpdateDepositAsPending(
         CryptoBankDbContext dbContext,
         long depositId,
         uint confirmationsCount,
@@ -111,11 +118,12 @@ public class BlockchainDepositConfirmationScanner : BackgroundService
             .ExecuteUpdateAsync(
                 calls => calls
                     .SetProperty(x => x.Confirmations, confirmationsCount)
-                    .SetProperty(x => x.Status, DepositStatus.Pending),
+                    .SetProperty(x => x.Status, DepositStatus.Pending)
+                    .SetProperty(x => x.ScannedAt, _clock.UtcNow),
                 cancellationToken);
     }
 
-    private async Task SetDepositAsConfirmed(
+    private async Task UpdateDepositAsConfirmed(
         CryptoBankDbContext dbContext,
         long depositId,
         uint confirmationsCount,

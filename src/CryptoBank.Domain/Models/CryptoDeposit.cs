@@ -40,12 +40,14 @@ public record CryptoDeposit
 
     public DepositStatus Status { get; init; }
 
+    public DateTimeOffset? ScannedAt { get; init; }
+
     public DateTimeOffset? ConfirmedAt { get; init; }
 }
 
 public enum DepositStatus
 {
-    Created = 1,
-    Pending = 2,
-    Confirmed = 3,
+    Created = 10,
+    Pending = 20,
+    Confirmed = 30,
 }
