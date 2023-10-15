@@ -1,7 +1,6 @@
 using CryptoBank.Domain.Models;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using NBitcoin;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
@@ -14,11 +13,9 @@ public static class AssertionExtensions
         decimal expectedAmountBtc,
         CancellationToken cancellationToken)
     {
-        var actualDeposit = await database.Execute(
-            dbContext =>
-                dbContext.CryptoDeposits.SingleOrDefaultAsync(
-                    deposit => deposit.Address.CryptoAddress == userAddress.ToString(),
-                    cancellationToken));
+        var actualDeposit = await database.SingleOrDefaultAsync<CryptoDeposit>(
+            deposit => deposit.Address.CryptoAddress == userAddress.ToString(),
+            cancellationToken);
 
         actualDeposit.Should().NotBeNull();
         actualDeposit.Amount.Should().Be(expectedAmountBtc);
@@ -34,10 +31,9 @@ public static class AssertionExtensions
         DateTimeOffset expectedScannedTime,
         CancellationToken cancellationToken)
     {
-        var actualDeposit = await database.Execute(
-            dbContext => dbContext.CryptoDeposits.SingleAsync(
-                x => x.Id == cryptoDepositId,
-                cancellationToken));
+        var actualDeposit = await database.SingleOrDefaultAsync<CryptoDeposit>(
+            deposit => deposit.Id == cryptoDepositId,
+            cancellationToken);
 
         actualDeposit.Should().NotBeNull();
         actualDeposit.Confirmations.Should().Be(expectedConfirmations);
@@ -52,10 +48,9 @@ public static class AssertionExtensions
         DateTimeOffset expectedConfirmedAt,
         CancellationToken cancellationToken)
     {
-        var actualDeposit = await database.Execute(
-            dbContext => dbContext.CryptoDeposits.SingleAsync(
-                x => x.Id == cryptoDepositId,
-                cancellationToken));
+        var actualDeposit = await database.SingleOrDefaultAsync<CryptoDeposit>(
+            deposit => deposit.Id == cryptoDepositId,
+            cancellationToken);
 
         actualDeposit.Should().NotBeNull();
         actualDeposit.Confirmations.Should().Be(expectedConfirmations);
@@ -69,10 +64,9 @@ public static class AssertionExtensions
         decimal expectedAmount,
         CancellationToken cancellationToken)
     {
-        var actualAccount = await database.Execute(
-            dbContext => dbContext.Accounts.SingleAsync(
-                x => x.UserId == userId,
-                cancellationToken));
+        var actualAccount = await database.SingleOrDefaultAsync<CryptoDeposit>(
+            deposit => deposit.UserId == userId,
+            cancellationToken);
 
         actualAccount.Should().NotBeNull();
         actualAccount.Amount.Should().Be(expectedAmount);

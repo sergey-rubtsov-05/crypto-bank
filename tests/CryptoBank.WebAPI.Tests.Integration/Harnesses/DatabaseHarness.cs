@@ -1,12 +1,13 @@
+using System.Linq.Expressions;
 using CryptoBank.Database;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Harnesses;
 
-public class DatabaseHarness<TProgram> : IHarness<TProgram>
-    where TProgram : class
+public class DatabaseHarness<TProgram> : IHarness<TProgram> where TProgram : class
 {
     private string _connectionString;
     private WebApplicationFactory<TProgram> _factory;
@@ -53,5 +54,16 @@ public class DatabaseHarness<TProgram> : IHarness<TProgram>
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         return await action(dbContext);
+    }
+
+    public async Task<T> SingleOrDefaultAsync<T>(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        var actualDeposit = await Execute(
+            dbContext => dbContext.Set<T>().SingleOrDefaultAsync(predicate, cancellationToken));
+
+        return actualDeposit;
     }
 }
