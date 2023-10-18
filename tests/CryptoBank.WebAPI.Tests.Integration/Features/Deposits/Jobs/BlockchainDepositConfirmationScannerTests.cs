@@ -1,12 +1,9 @@
-using System.Diagnostics;
 using CryptoBank.Common;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Tests.Integration.Common.Factories;
 using CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses;
-using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Bitcoin;
-using FluentAssertions.Extensions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using NBitcoin;
@@ -14,76 +11,39 @@ using NBitcoin.RPC;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.Jobs;
 
+[Collection(DepositsTestsCollection.Name)]
 public class BlockchainDepositConfirmationScannerTests : IAsyncLifetime
 {
     private const int AnyAmountBtc = 28;
 
     private readonly BitcoinHarness<Program> _bitcoin;
+    private readonly CancellationToken _cancellationToken;
+    private readonly CancellationTokenSource _cancellationTokenSource = Factory.CreateCancellationTokenSource(60);
     private readonly Mock<IClock> _clockMock;
     private readonly DatabaseHarness<Program> _database;
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly TimeSpan _scanInterval = TimeSpan.FromSeconds(1);
+    private readonly Helper _helper;
+    private readonly TimeSpan _scanInterval;
 
-    private CancellationToken _cancellationToken;
-    private CancellationTokenSource _cancellationTokenSource;
-    private Helper _helper;
-    private AsyncServiceScope _scope;
-
-    public BlockchainDepositConfirmationScannerTests()
+    public BlockchainDepositConfirmationScannerTests(DepositsTestFixture testFixture)
     {
-        _bitcoin = new BitcoinHarness<Program>();
-        _database = new DatabaseHarness<Program>();
-        _clockMock = new Mock<IClock>();
-        _clockMock
-            .Setup(clock => clock.UtcNow)
-            .Returns(07.October(2023).AsUtc());
+        _bitcoin = testFixture.Bitcoin;
+        _database = testFixture.Database;
+        _clockMock = testFixture.ClockMock;
+        _scanInterval = testFixture.ScanInterval;
 
-        _factory = new WebApplicationFactory<Program>()
-            .WithHarness(_bitcoin)
-            .WithHarness(_database)
-            .WithWebHostBuilder(
-                builder =>
-                {
-                    builder.ConfigureServices(
-                        services =>
-                        {
-                            services.AddSingleton(_clockMock.Object);
-                        });
-
-                    builder.ConfigureAppConfiguration(
-                        (_, configBuilder) =>
-                        {
-                            configBuilder.AddInMemoryCollection(
-                                new Dictionary<string, string>
-                                {
-                                    { "Features:Deposits:BitcoinBlockchainScanInterval", _scanInterval.ToString() },
-                                });
-                        });
-                });
-    }
-
-    public async Task InitializeAsync()
-    {
-        var delay = Debugger.IsAttached ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
-        _cancellationTokenSource = new CancellationTokenSource(delay);
         _cancellationToken = _cancellationTokenSource.Token;
-
-        await _bitcoin.Start(_factory, _cancellationToken);
-        await _database.Start(_factory, _cancellationToken);
-
-        var _ = _factory.Server;
-        _scope = _factory.Services.CreateAsyncScope();
 
         _helper = new Helper(_clockMock.Object, _database, _cancellationToken);
     }
 
-    public async Task DisposeAsync()
+    public async Task InitializeAsync()
     {
-        await _scope.DisposeAsync();
-        await _factory.DisposeAsync();
+        await _database.Clear(_cancellationToken);
+    }
 
-        await _database.Stop();
-        await _bitcoin.Stop();
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     private async Task<CryptoDeposit> CreateCryptoDeposit(RPCClient client, int amountBtc = AnyAmountBtc)

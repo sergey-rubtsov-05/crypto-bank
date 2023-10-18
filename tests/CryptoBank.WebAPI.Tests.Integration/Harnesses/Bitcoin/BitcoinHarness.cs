@@ -57,7 +57,7 @@ public class BitcoinHarness<TProgram> : IHarness<TProgram> where TProgram : clas
     public async Task<RPCClient> CreateClientWithWallet()
     {
         var client = await CreateClient();
-        return await client.CreateWalletAsync("AnyRegTestWallet");
+        return await client.CreateWalletAsync($"AnyRegTestWallet{Guid.NewGuid()}");
     }
 }
 

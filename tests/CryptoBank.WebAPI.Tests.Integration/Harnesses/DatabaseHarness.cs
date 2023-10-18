@@ -1,8 +1,11 @@
+using System.Data;
 using System.Linq.Expressions;
 using CryptoBank.Database;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Respawn;
+using Respawn.Graph;
 using Testcontainers.PostgreSql;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Harnesses;
@@ -65,5 +68,26 @@ public class DatabaseHarness<TProgram> : IHarness<TProgram> where TProgram : cla
             dbContext => dbContext.Set<T>().SingleOrDefaultAsync(predicate, cancellationToken));
 
         return actualDeposit;
+    }
+
+    public async Task Clear(CancellationToken cancellationToken)
+    {
+        await using var scope = _factory!.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
+
+        await using var connection = db.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+            await connection.OpenAsync(cancellationToken);
+
+        var respawner = await Respawner.CreateAsync(
+            connection,
+            new RespawnerOptions
+            {
+                SchemasToInclude = new[] { "public" },
+                DbAdapter = DbAdapter.Postgres,
+                TablesToIgnore = new[] { new Table("xpubs") },
+            });
+
+        await respawner.ResetAsync(connection);
     }
 }
