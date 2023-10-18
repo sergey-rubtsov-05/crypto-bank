@@ -10,6 +10,8 @@ namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.Jobs;
 
 internal class Helper
 {
+    private static uint _derivationIndex;
+
     private readonly CancellationToken _cancellationToken;
     private readonly IClock _clock;
     private readonly DatabaseHarness<Program> _database;
@@ -65,7 +67,7 @@ internal class Helper
                         User = user, Currency = currencyCode, OpenedAt = _clock.UtcNow,
                     };
 
-                    var derivationIndex = (uint)i;
+                    var derivationIndex = GetNextDerivationIndex();
 
                     var userPubKey = masterExtPubKey.Derive(derivationIndex).PubKey;
                     var userBitcoinAddress = userPubKey.Hash.GetAddress(Network.RegTest);
@@ -86,5 +88,10 @@ internal class Helper
 
                 return userAddresses;
             });
+    }
+
+    private static uint GetNextDerivationIndex()
+    {
+        return ++_derivationIndex;
     }
 }
