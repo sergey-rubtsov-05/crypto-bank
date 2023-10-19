@@ -11,6 +11,7 @@ public static class DepositsServiceCollectionExtensions
     {
         services.AddHostedService<InitialXpubCreator>();
         services.AddHostedService<BlockchainDepositScanner>();
+        services.AddHostedService<BlockchainDepositConfirmationScanner>();
         services.Configure<DepositsOptions>(configuration.GetSection("Features:Deposits"));
         services.AddSingleton<NetworkSource>();
         services.AddSingleton<BitcoinClientFactory>();

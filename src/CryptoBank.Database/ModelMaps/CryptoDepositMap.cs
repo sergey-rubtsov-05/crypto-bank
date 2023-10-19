@@ -20,5 +20,7 @@ public static class CryptoDepositMap
         entity.Property(deposit => deposit.TxId).HasColumnName("tx_id").IsRequired();
         entity.Property(deposit => deposit.Confirmations).HasColumnName("confirmations").IsRequired();
         entity.Property(deposit => deposit.Status).HasColumnName("status").IsRequired();
+        entity.Property(deposit => deposit.ScannedAt).HasColumnName("scanned_at");
+        entity.Property(deposit => deposit.ConfirmedAt).HasColumnName("confirmed_at");
     }
 }
