@@ -3,6 +3,7 @@ using System;
 using CryptoBank.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CryptoBank.Database.Migrations
 {
     [DbContext(typeof(CryptoBankDbContext))]
-    partial class CryptoBankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231006195713_AddCryptoDepositCreatedAt")]
+    partial class AddCryptoDepositCreatedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,8 +95,7 @@ namespace CryptoBank.Database.Migrations
                         .HasColumnName("confirmations");
 
                     b.Property<DateTimeOffset?>("ConfirmedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("confirmed_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -103,10 +105,6 @@ namespace CryptoBank.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("currency_code");
-
-                    b.Property<DateTimeOffset?>("ScannedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("scanned_at");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")

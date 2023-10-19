@@ -1,13 +1,16 @@
+using System.Data;
+using System.Linq.Expressions;
+using CryptoBank.Database;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Respawn;
+using Respawn.Graph;
 using Testcontainers.PostgreSql;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Harnesses;
 
-public class DatabaseHarness<TProgram, TDbContext> : IHarness<TProgram>
-    where TProgram : class
-    where TDbContext : DbContext
+public class DatabaseHarness<TProgram> : IHarness<TProgram> where TProgram : class
 {
     private string _connectionString;
     private WebApplicationFactory<TProgram> _factory;
@@ -42,17 +45,49 @@ public class DatabaseHarness<TProgram, TDbContext> : IHarness<TProgram>
         await _postgresContainer.DisposeAsync();
     }
 
-    public async Task Execute(Func<TDbContext, Task> action)
+    public async Task Execute(Func<CryptoBankDbContext, Task> action)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         await action(dbContext);
     }
 
-    public async Task<T> Execute<T>(Func<TDbContext, Task<T>> action)
+    public async Task<T> Execute<T>(Func<CryptoBankDbContext, Task<T>> action)
     {
         await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
         return await action(dbContext);
+    }
+
+    public async Task<T> SingleOrDefaultAsync<T>(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        var actualDeposit = await Execute(
+            dbContext => dbContext.Set<T>().SingleOrDefaultAsync(predicate, cancellationToken));
+
+        return actualDeposit;
+    }
+
+    public async Task Clear(CancellationToken cancellationToken)
+    {
+        await using var scope = _factory!.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
+
+        await using var connection = db.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+            await connection.OpenAsync(cancellationToken);
+
+        var respawner = await Respawner.CreateAsync(
+            connection,
+            new RespawnerOptions
+            {
+                SchemasToInclude = new[] { "public" },
+                DbAdapter = DbAdapter.Postgres,
+                TablesToIgnore = new[] { new Table("xpubs") },
+            });
+
+        await respawner.ResetAsync(connection);
     }
 }
