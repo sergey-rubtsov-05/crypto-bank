@@ -17,3 +17,7 @@ variable "base_firewall_id" {
 variable "frontend_ip" {
   type = string
 }
+
+variable "database_ip" {
+  type = string
+}

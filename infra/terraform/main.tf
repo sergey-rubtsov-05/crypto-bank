@@ -37,6 +37,7 @@ module "backend_server" {
   private_ip       = local.backend_ip
   base_firewall_id = module.base_firewall.id
   frontend_ip      = local.frontend_ip
+  database_ip      = local.database_id
 }
 
 module "database_server" {

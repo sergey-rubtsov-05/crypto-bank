@@ -37,6 +37,15 @@ resource "hcloud_firewall" "backend" {
       "${var.frontend_ip}/32",
     ]
   }
+  rule {
+    description = "Allow connect to database server"
+    direction   = "out"
+    port        = 5432
+    protocol    = "tcp"
+    destination_ips = [
+      "${var.database_ip}/32",
+    ]
+  }
 }
 
 resource "hcloud_server" "backend" {
