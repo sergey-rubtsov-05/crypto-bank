@@ -8,3 +8,5 @@ riderModule.iml
 *.csproj.user
 .vs/
 .idea/config/applicationhost.config
+
+.terraform/
