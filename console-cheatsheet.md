@@ -1,7 +1,8 @@
 # Docker commands
 
 ## Build image
-working directory: `{repository}\src`
+working directory: `{repository}\backend\src`
+- `-t` - Name and optionally a tag (format:  "name:tag")
 
 `docker build -t crypto-bank -f .\CryptoBank.WebAPI\Dockerfile .`
 
