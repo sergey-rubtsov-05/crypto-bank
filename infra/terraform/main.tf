@@ -1,3 +1,7 @@
+data "hcloud_ssh_key" "ssh_key" {
+  fingerprint = var.ssh_key_fingerprint
+}
+
 resource "hcloud_network" "network" {
   name     = "main_network"
   ip_range = "10.0.0.0/16"
@@ -27,6 +31,7 @@ module "frontend_server" {
   network_id       = hcloud_network.network.id
   private_ip       = local.frontend_ip
   base_firewall_id = module.base_firewall.id
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
 
 module "backend_server" {
@@ -38,6 +43,7 @@ module "backend_server" {
   base_firewall_id = module.base_firewall.id
   frontend_ip      = local.frontend_ip
   database_ip      = local.database_id
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
 
 module "database_server" {
@@ -48,4 +54,5 @@ module "database_server" {
   private_ip       = local.database_id
   base_firewall_id = module.base_firewall.id
   backend_ip       = local.backend_ip
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
