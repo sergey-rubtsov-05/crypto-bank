@@ -6,18 +6,18 @@
     postgres_config_dir: "/etc/postgresql/{{ postgres_version }}/main"
     postgres_volume_dir: "etc/postgresql/{{ postgres_version }}/volume"
     postgres_data_dir: "{{ postgres_volume_dir }}/data"
+    postgres_user: "postgres_user"
+    postgres_password: "postgres_password"
+    backend_ip: "10.0.1.2"
+    database_ip: "10.0.1.3"
 
   tasks:
-  - name: Upgrade system
-    apt:
-      upgrade: dist
-      update_cache: yes
-      
   - name: Install packages
     apt:
       name:
       - postgresql
       - postgresql-contrib
+      - python3-psycopg2
       state: present
 
   - name: Set volume directory owner
