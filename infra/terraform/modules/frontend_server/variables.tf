@@ -13,3 +13,7 @@ variable "private_ip" {
 variable "base_firewall_id" {
   type = number
 }
+
+variable "ssh_keys" {
+  type = list(string)
+}

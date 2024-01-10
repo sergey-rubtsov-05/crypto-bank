@@ -17,3 +17,7 @@ variable "base_firewall_id" {
 variable "backend_ip" {
   type = string
 }
+
+variable "ssh_keys" {
+  type = list(string)
+}
