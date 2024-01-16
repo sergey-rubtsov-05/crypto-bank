@@ -5,50 +5,55 @@ using CryptoBank.WebAPI.Common.Services;
 using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Auth.Requests;
 using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
-using CryptoBank.WebAPI.Tests.Integration.Common;
 using CryptoBank.WebAPI.Tests.Integration.Common.Errors;
+using CryptoBank.WebAPI.Tests.Integration.Common.Factories;
 using CryptoBank.WebAPI.Tests.Integration.Features.Auth.AssertionExtensions;
-using Microsoft.EntityFrameworkCore;
+using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using Microsoft.Extensions.Options;
 using Moq;
 using RestSharp;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Features.Auth.Requests;
 
-public class AuthenticateTests : IntegrationTestsBase
+[Collection(AuthTestsCollection.Name)]
+public class AuthenticateTests : IAsyncLifetime
 {
     private readonly Mock<IClock> _clockMock;
+    private readonly CancellationTokenSource _cts = Factory.CreateCancellationTokenSource(60);
+    private readonly DatabaseHarness<Program> _database;
+    private readonly AuthTestFixture _fixture;
+    private readonly HttpClientHarness<Program> _httpClient;
+
     private AuthOptions _authOptions;
+    private IPasswordHasher _passwordHasher;
+    private AsyncServiceScope _scope;
 
-    public AuthenticateTests()
+    public AuthenticateTests(AuthTestFixture testFixture)
     {
-        _clockMock = new Mock<IClock>();
+        _clockMock = testFixture.ClockMock;
+        _database = testFixture.Database;
+        _httpClient = testFixture.HttpClient;
+        _fixture = testFixture;
     }
 
-    protected override void ConfigureService(IServiceCollection services)
+    public async Task InitializeAsync()
     {
-        services.AddSingleton(_clockMock.Object);
+        await _database.Clear(_cts.Token);
+        _scope = _fixture.Factory.Services.CreateAsyncScope();
+        _passwordHasher = _scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        _authOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value;
     }
 
-    public override async Task InitializeAsync()
+    public async Task DisposeAsync()
     {
-        await base.InitializeAsync();
-
-        _authOptions = Scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value;
-    }
-
-    public override async Task DisposeAsync()
-    {
-        await DbContext.Users.ExecuteDeleteAsync();
-
-        await base.DisposeAsync();
+        await _scope.DisposeAsync();
     }
 
     private async Task<RestResponse<TResponse>> ExecuteAuthenticateRequest<TResponse>(string email, string password)
     {
         var authRequest = new Authenticate.Request(email, password);
 
-        var httpClient = Factory.CreateClient();
+        var httpClient = _httpClient.CreateClient();
         var restClient = new RestClient(httpClient);
 
         var restResponse =
@@ -69,18 +74,23 @@ public class AuthenticateTests : IntegrationTestsBase
 
         var user = new User(
             email,
-            Scope.ServiceProvider.GetRequiredService<IPasswordHasher>().Hash(password),
+            _passwordHasher.Hash(password),
             null,
             utcNow,
             new[] { Role.User, Role.Analyst });
 
-        await DbContext.Users.AddAsync(user);
-
-        await DbContext.SaveChangesAsync();
+        await _database.Execute(
+            async dbContext =>
+            {
+                await dbContext.Users.AddAsync(user);
+                await dbContext.SaveChangesAsync();
+            });
 
         var restResponse = await ExecuteAuthenticateRequest<Authenticate.Response>(email, password);
 
-        await restResponse.ShouldBeValidAuthenticateResponse(user, utcNow, _authOptions, DbContext);
+        await _database.Execute(
+            async dbContext =>
+                await restResponse.ShouldBeValidAuthenticateResponse(user, utcNow, _authOptions, dbContext));
     }
 
     [Fact]
@@ -102,14 +112,17 @@ public class AuthenticateTests : IntegrationTestsBase
 
         var user = new User(
             "email",
-            Scope.ServiceProvider.GetRequiredService<IPasswordHasher>().Hash("validPassword"),
+            _passwordHasher.Hash("validPassword"),
             null,
             utcNow,
             new[] { Role.User, Role.Analyst });
 
-        await DbContext.Users.AddAsync(user);
-
-        await DbContext.SaveChangesAsync();
+        await _database.Execute(
+            async dbContext =>
+            {
+                await dbContext.Users.AddAsync(user);
+                await dbContext.SaveChangesAsync();
+            });
 
         var restResponse = await ExecuteAuthenticateRequest<ProblemDetailsContract>(user.Email, "invalidPassword");
 

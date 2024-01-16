@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Common;
 
+[Obsolete("Use TestFixture with Harnesses instead.")]
 public abstract class IntegrationTestsBase : IAsyncLifetime
 {
     protected readonly WebApplicationFactory<Program> Factory;
