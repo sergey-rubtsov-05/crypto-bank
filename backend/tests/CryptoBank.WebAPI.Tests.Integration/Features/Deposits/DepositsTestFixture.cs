@@ -14,6 +14,7 @@ public class DepositsTestFixture : IAsyncLifetime
 
     internal Mock<IClock> ClockMock { get; private set; }
     internal DatabaseHarness<Program> Database { get; private set; }
+    internal HttpClientHarness<Program> HttpClient { get; private set; }
     internal BitcoinHarness<Program> Bitcoin { get; private set; }
     internal WebApplicationFactory<Program> Factory { get; private set; }
 
@@ -26,10 +27,12 @@ public class DepositsTestFixture : IAsyncLifetime
 
         Bitcoin = new BitcoinHarness<Program>();
         Database = new DatabaseHarness<Program>();
+        HttpClient = new HttpClientHarness<Program>();
 
         Factory = new WebApplicationFactory<Program>()
             .WithHarness(Bitcoin)
             .WithHarness(Database)
+            .WithHarness(HttpClient)
             .WithWebHostBuilder(
                 builder =>
                 {
@@ -54,6 +57,7 @@ public class DepositsTestFixture : IAsyncLifetime
 
         await Bitcoin.Start(Factory, cancellationToken);
         await Database.Start(Factory, cancellationToken);
+        await HttpClient.Start(Factory, cancellationToken);
 
         var _ = Factory.Server;
     }
@@ -62,5 +66,6 @@ public class DepositsTestFixture : IAsyncLifetime
     {
         await Database.Stop();
         await Bitcoin.Stop();
+        await HttpClient.Stop();
     }
 }

@@ -45,7 +45,7 @@ internal class Helper
     public async Task<List<BitcoinPubKeyAddress>> CreateBitcoinAddresses(int number)
     {
         return await _database.Execute(
-            async dbContext =>
+            async Task<List<BitcoinPubKeyAddress>> (dbContext) =>
             {
                 var xpub = await dbContext.Xpubs.SingleAsync(_cancellationToken);
                 var masterExtPubKey = new BitcoinExtPubKey(xpub.Value, Network.RegTest).ExtPubKey;

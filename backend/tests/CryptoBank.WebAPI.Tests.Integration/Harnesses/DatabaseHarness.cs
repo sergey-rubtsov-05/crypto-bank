@@ -59,6 +59,13 @@ public class DatabaseHarness<TProgram> : IHarness<TProgram> where TProgram : cla
         return await action(dbContext);
     }
 
+    public async ValueTask<T> Execute<T>(Func<CryptoBankDbContext, ValueTask<T>> action)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<CryptoBankDbContext>();
+        return await action(dbContext);
+    }
+
     public async Task<T> SingleOrDefaultAsync<T>(
         Expression<Func<T, bool>> predicate,
         CancellationToken cancellationToken)

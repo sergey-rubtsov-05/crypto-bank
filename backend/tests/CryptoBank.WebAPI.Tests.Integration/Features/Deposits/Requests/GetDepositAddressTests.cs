@@ -1,47 +1,63 @@
 using CryptoBank.Common;
 using CryptoBank.Domain.Authorization;
 using CryptoBank.Domain.Models;
+using CryptoBank.WebAPI.Features.Auth.Options;
 using CryptoBank.WebAPI.Features.Deposits.Requests;
 using CryptoBank.WebAPI.Tests.Integration.AssertionExtensions;
 using CryptoBank.WebAPI.Tests.Integration.Common;
 using CryptoBank.WebAPI.Tests.Integration.Common.Errors;
+using CryptoBank.WebAPI.Tests.Integration.Common.Factories;
 using CryptoBank.WebAPI.Tests.Integration.Features.Deposits.AssertionExtensions;
+using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RestSharp;
 using RestSharp.Authenticators;
 
 namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits.Requests;
 
-public class GetDepositAddressTests : IntegrationTestsBase
+[Collection(DepositsTestsCollection.Name)]
+public class GetDepositAddressTests : IAsyncLifetime
 {
+    private readonly IClock _clock;
+    private readonly CancellationTokenSource _cts = Factory.CreateCancellationTokenSource(60);
+    private readonly DatabaseHarness<Program> _database;
+    private readonly DepositsTestFixture _fixture;
+    private readonly HttpClientHarness<Program> _httpClient;
+
     private AuthHelper _authHelper;
-    private IClock _clock;
+    private AsyncServiceScope _scope;
 
-    protected override void ConfigureService(IServiceCollection services)
+
+    public GetDepositAddressTests(DepositsTestFixture testFixture)
     {
-        services.AddSingleton<AuthHelper>();
+        _fixture = testFixture;
+        _database = _fixture.Database;
+        _httpClient = _fixture.HttpClient;
+        _clock = _fixture.ClockMock.Object;
+        _fixture.ClockMock
+            .Setup(clock => clock.UtcNow)
+            .Returns(() => DateTime.UtcNow);
     }
 
-    public override async Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        await base.InitializeAsync();
+        await _database.Clear(_cts.Token);
 
-        _clock = Scope.ServiceProvider.GetRequiredService<IClock>();
-        _authHelper = Scope.ServiceProvider.GetRequiredService<AuthHelper>();
+        _scope = _fixture.Factory.Services.CreateAsyncScope();
+        var authOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>();
+        _authHelper = new AuthHelper(_clock, authOptions);
     }
 
-    public override async Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        await DbContext.Users.ExecuteDeleteAsync();
-        await DbContext.Xpubs.ExecuteDeleteAsync();
-
-        await base.DisposeAsync();
+        await _scope.DisposeAsync();
     }
 
     private async Task<RestResponse<TResponse>> ExecuteRequest<TResponse>(string accessToken = null)
     {
-        var httpClient = Factory.CreateClient();
+        var httpClient = _httpClient.CreateClient();
         var restClient = new RestClient(httpClient);
 
         var restRequest = new RestRequest("/deposits/depositAddress");
@@ -57,15 +73,21 @@ public class GetDepositAddressTests : IntegrationTestsBase
     [Fact]
     private async Task DepositAddress_Create10AddressesInParallel()
     {
-        for (var i = 1; i <= 10; i++)
-        {
-            var user = new User($"anyEmail{i}", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-            await DbContext.Users.AddAsync(user);
-        }
+        await _database.Execute(
+            async dbContext =>
+            {
+                for (var i = 1; i <= 10; i++)
+                {
+                    var user = new User($"anyEmail{i}", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
+                    await dbContext.Users.AddAsync(user);
+                }
 
-        await DbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
+            });
 
-        var requestTasks = DbContext.Users.ToList()
+        var dbUsers = await _database.Execute(dbContext => dbContext.Users.ToListAsync());
+
+        var requestTasks = dbUsers.ToList()
             .Select(
                 user =>
                 {
@@ -77,8 +99,9 @@ public class GetDepositAddressTests : IntegrationTestsBase
         var responses = await Task.WhenAll(requestTasks);
         responses.Should().AllSatisfy(response => response.ShouldBeValidJsonResponse());
 
-        uint previousDerivationIndex = 0;
-        foreach (var depositAddress in DbContext.DepositAddresses.OrderBy(address => address.DerivationIndex))
+        var depositAddresses = await _database.Execute(dbContext => dbContext.DepositAddresses.ToListAsync());
+        var previousDerivationIndex = depositAddresses.Select(address => address.DerivationIndex).Min() - 1;
+        foreach (var depositAddress in depositAddresses.OrderBy(address => address.DerivationIndex))
         {
             depositAddress.DerivationIndex.Should().Be(previousDerivationIndex + 1);
             previousDerivationIndex = depositAddress.DerivationIndex;
@@ -89,8 +112,12 @@ public class GetDepositAddressTests : IntegrationTestsBase
     private async Task DepositAddress_SecondCallReturnsTheSameAddress()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-        await DbContext.Users.AddAsync(user);
-        await DbContext.SaveChangesAsync();
+        await _database.Execute(
+            async dbContext =>
+            {
+                await dbContext.Users.AddAsync(user);
+                await dbContext.SaveChangesAsync();
+            });
 
         var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
 
@@ -107,14 +134,22 @@ public class GetDepositAddressTests : IntegrationTestsBase
     private async Task DepositAddressDoesNotExist_ReturnsNewAddressInResponse()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-        await DbContext.Users.AddAsync(user);
-        await DbContext.SaveChangesAsync();
+        await _database.Execute(
+            async dbContext =>
+            {
+                await dbContext.Users.AddAsync(user);
+                await dbContext.SaveChangesAsync();
+            });
 
         var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
 
         var restResponse = await ExecuteRequest<GetDepositAddress.Response>(accessToken);
 
-        await restResponse.ShouldBeValidGetDepositAddressResponse(user, DbContext);
+        await _database.Execute(
+            async dbContext =>
+            {
+                await restResponse.ShouldBeValidGetDepositAddressResponse(user, dbContext);
+            });
     }
 
     [Fact]
