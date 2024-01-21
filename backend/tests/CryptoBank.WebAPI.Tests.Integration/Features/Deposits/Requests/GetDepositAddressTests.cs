@@ -73,21 +73,13 @@ public class GetDepositAddressTests : IAsyncLifetime
     [Fact]
     private async Task DepositAddress_Create10AddressesInParallel()
     {
-        await _database.Execute(
-            async dbContext =>
-            {
-                for (var i = 1; i <= 10; i++)
-                {
-                    var user = new User($"anyEmail{i}", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-                    await dbContext.Users.AddAsync(user);
-                }
+        var users = Enumerable.Range(1, 10)
+            .Select(i => new User($"anyEmail{i}", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User }))
+            .ToArray();
 
-                await dbContext.SaveChangesAsync();
-            });
+        await _database.Save(users);
 
-        var dbUsers = await _database.Execute(dbContext => dbContext.Users.ToListAsync());
-
-        var requestTasks = dbUsers.ToList()
+        var requestTasks = users
             .Select(
                 user =>
                 {
@@ -112,12 +104,7 @@ public class GetDepositAddressTests : IAsyncLifetime
     private async Task DepositAddress_SecondCallReturnsTheSameAddress()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-        await _database.Execute(
-            async dbContext =>
-            {
-                await dbContext.Users.AddAsync(user);
-                await dbContext.SaveChangesAsync();
-            });
+        await _database.Save(user);
 
         var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
 
@@ -134,12 +121,7 @@ public class GetDepositAddressTests : IAsyncLifetime
     private async Task DepositAddressDoesNotExist_ReturnsNewAddressInResponse()
     {
         var user = new User("anyEmail", "anyPasswordHash", null, _clock.UtcNow, new[] { Role.User });
-        await _database.Execute(
-            async dbContext =>
-            {
-                await dbContext.Users.AddAsync(user);
-                await dbContext.SaveChangesAsync();
-            });
+        await _database.Save(user);
 
         var accessToken = _authHelper.CreateAccessToken(user.Id, user.Roles);
 

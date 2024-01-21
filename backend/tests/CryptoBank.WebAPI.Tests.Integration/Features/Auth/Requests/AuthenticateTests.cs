@@ -79,12 +79,7 @@ public class AuthenticateTests : IAsyncLifetime
             utcNow,
             new[] { Role.User, Role.Analyst });
 
-        await _database.Execute(
-            async dbContext =>
-            {
-                await dbContext.Users.AddAsync(user);
-                await dbContext.SaveChangesAsync();
-            });
+        await _database.Save(user);
 
         var restResponse = await ExecuteAuthenticateRequest<Authenticate.Response>(email, password);
 
@@ -117,12 +112,7 @@ public class AuthenticateTests : IAsyncLifetime
             utcNow,
             new[] { Role.User, Role.Analyst });
 
-        await _database.Execute(
-            async dbContext =>
-            {
-                await dbContext.Users.AddAsync(user);
-                await dbContext.SaveChangesAsync();
-            });
+        await _database.Save(user);
 
         var restResponse = await ExecuteAuthenticateRequest<ProblemDetailsContract>(user.Email, "invalidPassword");
 
