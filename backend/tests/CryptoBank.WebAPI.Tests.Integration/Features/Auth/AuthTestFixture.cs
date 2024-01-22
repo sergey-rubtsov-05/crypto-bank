@@ -1,21 +1,17 @@
 using CryptoBank.Common;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses;
 using CryptoBank.WebAPI.Tests.Integration.Harnesses.Base;
-using CryptoBank.WebAPI.Tests.Integration.Harnesses.Bitcoin;
 using FluentAssertions.Extensions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 
-namespace CryptoBank.WebAPI.Tests.Integration.Features.Deposits;
+namespace CryptoBank.WebAPI.Tests.Integration.Features.Auth;
 
-public class DepositsTestFixture : IAsyncLifetime
+public class AuthTestFixture : IAsyncLifetime
 {
-    internal readonly TimeSpan ScanInterval = TimeSpan.FromSeconds(1);
-
     internal Mock<IClock> ClockMock { get; private set; }
     internal DatabaseHarness<Program> Database { get; private set; }
     internal HttpClientHarness<Program> HttpClient { get; private set; }
-    internal BitcoinHarness<Program> Bitcoin { get; private set; }
     internal WebApplicationFactory<Program> Factory { get; private set; }
 
     public async Task InitializeAsync()
@@ -25,12 +21,10 @@ public class DepositsTestFixture : IAsyncLifetime
             .Setup(clock => clock.UtcNow)
             .Returns(07.October(2023).AsUtc());
 
-        Bitcoin = new BitcoinHarness<Program>();
         Database = new DatabaseHarness<Program>();
         HttpClient = new HttpClientHarness<Program>();
 
         Factory = new WebApplicationFactory<Program>()
-            .WithHarness(Bitcoin)
             .WithHarness(Database)
             .WithHarness(HttpClient)
             .WithWebHostBuilder(
@@ -41,21 +35,10 @@ public class DepositsTestFixture : IAsyncLifetime
                         {
                             services.AddSingleton(ClockMock.Object);
                         });
-
-                    builder.ConfigureAppConfiguration(
-                        (_, configBuilder) =>
-                        {
-                            configBuilder.AddInMemoryCollection(
-                                new Dictionary<string, string>
-                                {
-                                    { "Features:Deposits:BitcoinBlockchainScanInterval", ScanInterval.ToString() },
-                                });
-                        });
                 });
 
         var cancellationToken = Common.Factories.Factory.CreateCancellationToken(60);
 
-        await Bitcoin.Start(Factory, cancellationToken);
         await Database.Start(Factory, cancellationToken);
         await HttpClient.Start(Factory, cancellationToken);
 
@@ -65,7 +48,6 @@ public class DepositsTestFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await Database.Stop();
-        await Bitcoin.Stop();
         await HttpClient.Stop();
     }
 }
