@@ -25,4 +25,5 @@ resource "hcloud_server" "database" {
     var.base_firewall_id,
     hcloud_firewall.database.id,
   ]
+  ssh_keys = var.ssh_keys
 }

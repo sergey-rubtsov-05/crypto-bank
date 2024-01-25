@@ -61,4 +61,5 @@ resource "hcloud_server" "backend" {
     var.base_firewall_id,
     hcloud_firewall.backend.id,
   ]
+  ssh_keys = var.ssh_keys
 }

@@ -21,3 +21,7 @@ variable "frontend_ip" {
 variable "database_ip" {
   type = string
 }
+
+variable "ssh_keys" {
+  type = list(string)
+}
