@@ -1,5 +1,7 @@
 workspace {
 
+    !identifiers hierarchical
+
     model {
         customer = person "Customer" "A user of my crypto-bank system." {
             tags "External"
@@ -77,31 +79,31 @@ workspace {
             }
 
             btcBlockchainService = container "BTC Blockchain Service" "BTC blockchain service for my crypto-bank system." {
-                createDepositAddressBtc = component "Create Deposit Address" "Create deposit address for account." {
+                createDepositAddress = component "Create Deposit Address" "Create deposit address for account." {
                     customerFrontend -> this
                 }
-                getDepositBtc = component "Get Deposit" "Get deposit for account." {
+                getDeposit = component "Get Deposit" "Get deposit for account." {
                     customerFrontend -> this
                 }
-                approveDepositBtcJob = component "Approve Deposit Job" "Approve deposit for account."
-                createWithdrawalBtc = component "Create Withdrawal" "Create withdrawal for account." {
+                approveDepositJob = component "Approve Deposit Job" "Approve deposit for account."
+                createWithdrawal = component "Create Withdrawal" "Create withdrawal for account." {
                     customerFrontend -> this
                 }
-                approveWithdrawalBtcJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
+                approveWithdrawalJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
             }
 
             ethBlockchainService = container "ETH Blockchain Service" "ETH blockchain service for my crypto-bank system." {
-                createDepositAddressEth = component "Create Deposit Address" "Create deposit address for account." {
+                createDepositAddress = component "Create Deposit Address" "Create deposit address for account." {
                     customerFrontend -> this
                 }
-                getDepositEth = component "Get Deposit" "Get deposit for account." {
+                getDeposit = component "Get Deposit" "Get deposit for account." {
                     customerFrontend -> this
                 }
-                approveDepositEthJob = component "Approve Deposit Job" "Approve deposit for account."
-                createWithdrawalEth = component "Create Withdrawal" "Create withdrawal for account." {
+                approveDepositJob = component "Approve Deposit Job" "Approve deposit for account."
+                createWithdrawal = component "Create Withdrawal" "Create withdrawal for account." {
                     customerFrontend -> this
                 }
-                approveWithdrawalEthJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
+                approveWithdrawalJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
             }
 
             utilityProviderService = container "Utility Provider Service" "Utility provider service for my crypto-bank system." {
@@ -129,13 +131,13 @@ workspace {
 
             notificationService = container "Notification Service" "Notification service for my crypto-bank system." {
                 createNotification = component "Send Notification" "Send notification for customer." {
-                    getDepositBtc -> this "Publish async notification" "" "Async"
-                    approveDepositBtcJob -> this "Publish async notification" "" "Async"
-                    approveWithdrawalBtcJob -> this "Publish async notification" "" "Async"
-                    getDepositEth -> this "Publish async notification" "" "Async"
-                    approveDepositEthJob -> this "Publish async notification" "" "Async"
-                    approveWithdrawalEthJob -> this "Publish async notification" "" "Async"
-                    loadUnpaidBillsJob -> this "Publish async notification" "" "Async"
+                    btcBlockchainService.getDeposit -> this "Publish async notification" "" "Async"
+                    btcBlockchainService.approveDepositJob -> this "Publish async notification" "" "Async"
+                    btcBlockchainService.approveWithdrawalJob -> this "Publish async notification" "" "Async"
+                    ethBlockchainService.getDeposit -> this "Publish async notification" "" "Async"
+                    ethBlockchainService.approveDepositJob -> this "Publish async notification" "" "Async"
+                    ethBlockchainService.approveWithdrawalJob -> this "Publish async notification" "" "Async"
+                    utilityProviderService.loadUnpaidBillsJob -> this "Publish async notification" "" "Async"
                 }
 
                 sendEmailNotification = component "Send Email Notification" "Send email notification for customer." {
@@ -150,17 +152,17 @@ workspace {
 
         softwareSystem "BTC blockchain" {
             tags "External"
-            btcBlockchainService -> this "Uses"
+            cryptoBank.btcBlockchainService -> this "Uses"
         }
 
         softwareSystem "ETH blockchain" {
             tags "External"
-            ethBlockchainService -> this "Uses"
+            cryptoBank.ethBlockchainService -> this "Uses"
         }
 
         utilityProvider = softwareSystem "UtilityProvider" "Providers features for get and pay utility bills" {
             tags "External"
-            utilityProviderService -> this "Uses"
+            cryptoBank.utilityProviderService -> this "Uses"
         }
     }
 
@@ -175,42 +177,42 @@ workspace {
             autoLayout
         }
 
-        component userService {
+        component cryptoBank.userService {
             include *
             autoLayout
         }
 
-        component accountService {
+        component cryptoBank.accountService {
             include *
             autoLayout
         }
 
-        component qrPaymentService {
+        component cryptoBank.qrPaymentService {
             include *
             autoLayout
         }
 
-        component btcBlockchainService {
+        component cryptoBank.btcBlockchainService {
             include *
             autoLayout
         }
 
-        component ethBlockchainService {
+        component cryptoBank.ethBlockchainService {
             include *
             autoLayout
         }
 
-        component utilityProviderService {
+        component cryptoBank.utilityProviderService {
             include *
             autoLayout
         }
 
-        component reportService {
+        component cryptoBank.reportService {
             include *
             autoLayout
         }
 
-        component notificationService {
+        component cryptoBank.notificationService {
             include *
             autoLayout
         }
