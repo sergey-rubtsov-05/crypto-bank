@@ -8,70 +8,131 @@ workspace {
 
         cryptoBank = softwareSystem "Crypto Bank" "My crypto-bank system." {
 
-            customerFrontend = container "User Frontend" "Any frontend app which customer can use to interact with the system." {
-                customer -> this "Uses"
+            customerFrontend = container "Customer Frontend" "Any frontend app which customer can use to interact with the system." {
+                customer -> this
             }
 
             backOfficeFrontend = container "Back Office Frontend" "Any frontend app which admin can use to interact with the system." {
-                admin -> this "Uses"
+                admin -> this
             }
 
             userService = container "User Service" "User service for my crypto-bank system." {
-                userRegistration = component "User Registration" "User registration component."
-                userAuth = component "User Auth" "User authentication component."
-                userProfile = component "User Profile" "User account component."
-                updatePassword = component "Update Password" "Update password component."
-                updateRoles = component "Update Roles" "Update roles component." {
-                    backOfficeFrontend -> this "Uses"
+                userRegistration = component "User Registration" "User registration component." {
+                    customerFrontend -> this
                 }
-                customerFrontend -> this "Uses"
+                userAuth = component "User Auth" "User authentication component." {
+                    customerFrontend -> this
+                }
+                userProfile = component "User Profile" "User account component." {
+                    customerFrontend -> this
+                }
+                updatePassword = component "Update Password" "Update password component." {
+                    customerFrontend -> this
+                }
+                updateRoles = component "Update Roles" "Update roles component." {
+                    backOfficeFrontend -> this
+                }
             }
 
             accountService = container "Account Service" "Account service for my crypto-bank system." {
-                createAccount = component "Create Account" "Create account component."
-                getCustomerAccounts = component "Get Customer Accounts" "Get list of customer accounts."
-                transferFundsBetweenAccounts = component "Transfer Funds" "Transfer funds between accounts."
-                createVirtualCardAccount = component "Create Virtual Card Account" "Create virtual card with account component."
-                getCustomerVirtualCards = component "Get Customer Virtual Cards" "Get list of customer virtual cards."
-                transferFundsToCardFromAccount = component "Transfer Funds To Card From Account" "Transfer funds from account to virtual card."
-                transferFundsToAccountFromCard = component "Transfer Funds To Account From Card" "Transfer funds from virtual card to account."
-                transferFundsBetweenCards = component "Transfer Funds Between Cards" "Transfer funds between virtual cards."
-                getTransfersHistory = component "Get Transfers History" "Get transfers history for account."
+                createAccount = component "Create Account" "Create account component." {
+                    customerFrontend -> this
+                }
+                getCustomerAccounts = component "Get Customer Accounts" "Get list of customer accounts." {
+                    customerFrontend -> this
+                }
+                transferFundsBetweenAccounts = component "Transfer Funds" "Transfer funds between accounts." {
+                    customerFrontend -> this
+                }
+                createVirtualCardAccount = component "Create Virtual Card Account" "Create virtual card with account component." {
+                    customerFrontend -> this
+                }
+                getCustomerVirtualCards = component "Get Customer Virtual Cards" "Get list of customer virtual cards." {
+                    customerFrontend -> this
+                }
+                transferFundsToCardFromAccount = component "Transfer Funds To Card From Account" "Transfer funds from account to virtual card." {
+                    customerFrontend -> this
+                }
+                transferFundsToAccountFromCard = component "Transfer Funds To Account From Card" "Transfer funds from virtual card to account." {
+                    customerFrontend -> this
+                }
+                transferFundsBetweenCards = component "Transfer Funds Between Cards" "Transfer funds between virtual cards." {
+                    customerFrontend -> this
+                }
+                getTransfersHistory = component "Get Transfers History" "Get transfers history for account." {
+                    customerFrontend -> this
+                }
             }
 
             qrPaymentService = container "QR Payment Service" "QR payment service for my crypto-bank system." {
-                generateQr = component "Generate QR" "Generate QR code for payment."
-                scanQr = component "Scan QR" "Scan QR code for payment."
-                getQrPaymentsHistory = component "Get QR Payments History" "Get payments history for account."
+                generateQr = component "Generate QR" "Generate QR code for payment." {
+                    customerFrontend -> this
+                }
+                scanQr = component "Scan QR" "Scan QR code for payment." {
+                    customerFrontend -> this
+                }
+                getQrPaymentsHistory = component "Get QR Payments History" "Get payments history for account." {
+                    customerFrontend -> this
+                }
             }
 
             btcBlockchainService = container "BTC Blockchain Service" "BTC blockchain service for my crypto-bank system." {
-                createDepositAddressBtc = component "Create Deposit Address" "Create deposit address for account."
-                getDepositBtc = component "Get Deposit" "Get deposit for account."
-                approveDepositBtc = component "Approve Deposit" "Approve deposit for account."
-                createWithdrawalBtc = component "Create Withdrawal" "Create withdrawal for account."
-                approveWithdrawalBtc = component "Approve Withdrawal" "Approve withdrawal for account."
-                notifyToSignalRBtc = component "Notify To SignalR" "Notify to SignalR for account."
-                notifyToEmailBtc = component "Notify To Email" "Notify to email for account."
+                createDepositAddressBtc = component "Create Deposit Address" "Create deposit address for account." {
+                    customerFrontend -> this
+                }
+                getDepositBtc = component "Get Deposit" "Get deposit for account." {
+                    customerFrontend -> this
+                }
+                approveDepositBtcJob = component "Approve Deposit Job" "Approve deposit for account."
+                createWithdrawalBtc = component "Create Withdrawal" "Create withdrawal for account." {
+                    customerFrontend -> this
+                }
+                approveWithdrawalBtcJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
+                notifyToSignalRBtc = component "Notify To SignalR" "Notify to SignalR for account." {
+                    customerFrontend -> this
+                }
+                notifyToEmailBtc = component "Notify To Email" "Notify to email for account." {
+                    customerFrontend -> this
+                }
             }
 
             ethBlockchainService = container "ETH Blockchain Service" "ETH blockchain service for my crypto-bank system." {
-                createDepositAddressEth = component "Create Deposit Address" "Create deposit address for account."
-                getDepositEth = component "Get Deposit" "Get deposit for account."
-                approveDepositEth = component "Approve Deposit" "Approve deposit for account."
-                createWithdrawalEth = component "Create Withdrawal" "Create withdrawal for account."
-                approveWithdrawalEth = component "Approve Withdrawal" "Approve withdrawal for account."
-                notifyToSignalREth = component "Notify To SignalR" "Notify to SignalR for account."
-                notifyToEmailEth = component "Notify To Email" "Notify to email for account."
+                createDepositAddressEth = component "Create Deposit Address" "Create deposit address for account." {
+                    customerFrontend -> this
+                }
+                getDepositEth = component "Get Deposit" "Get deposit for account." {
+                    customerFrontend -> this
+                }
+                approveDepositEthJob = component "Approve Deposit Job" "Approve deposit for account."
+                createWithdrawalEth = component "Create Withdrawal" "Create withdrawal for account." {
+                    customerFrontend -> this
+                }
+                approveWithdrawalEthJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
+                notifyToSignalREth = component "Notify To SignalR" "Notify to SignalR for account." {
+                    customerFrontend -> this
+                }
+                notifyToEmailEth = component "Notify To Email" "Notify to email for account." {
+                    customerFrontend -> this
+                }
             }
 
             utilityProviderService = container "Utility Provider Service" "Utility provider service for my crypto-bank system." {
                 loadUnpaidBillsJob = component "Load Unpaid Bills Job" "Periodically load unpaid bills for account."
-                getUppaidBills = component "Get Unpaid Bills" "Get unpaid bills for account."
-                payBill = component "Pay Bill" "Pay bill for account."
-                getPaymentsHistory = component "Get Payments History" "Get payments history for account."
-                notifyToSignalR = component "Notify To SignalR" "Notify to SignalR for account."
-                notifyToEmail = component "Notify To Email" "Notify to email for account."
+                getUppaidBills = component "Get Unpaid Bills" "Get unpaid bills for account." {
+                    customerFrontend -> this
+                }
+                payBill = component "Pay Bill" "Pay bill for account." {
+                    customerFrontend -> this
+                }
+                getPaymentsHistory = component "Get Payments History" "Get payments history for account." {
+                    customerFrontend -> this
+                }
+                notifyToSignalR = component "Notify To SignalR" "Notify to SignalR for account." {
+                    customerFrontend -> this
+                }
+                notifyToEmail = component "Notify To Email" "Notify to email for account." {
+                    customerFrontend -> this
+                }
             }
 
             reportService = container "Report Service" "Report service for my crypto-bank system." {
