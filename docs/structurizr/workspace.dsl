@@ -88,12 +88,6 @@ workspace {
                     customerFrontend -> this
                 }
                 approveWithdrawalBtcJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
-                notifyToSignalRBtc = component "Notify To SignalR" "Notify to SignalR for account." {
-                    customerFrontend -> this
-                }
-                notifyToEmailBtc = component "Notify To Email" "Notify to email for account." {
-                    customerFrontend -> this
-                }
             }
 
             ethBlockchainService = container "ETH Blockchain Service" "ETH blockchain service for my crypto-bank system." {
@@ -108,16 +102,11 @@ workspace {
                     customerFrontend -> this
                 }
                 approveWithdrawalEthJob = component "Approve Withdrawal Job" "Approve withdrawal for account."
-                notifyToSignalREth = component "Notify To SignalR" "Notify to SignalR for account." {
-                    customerFrontend -> this
-                }
-                notifyToEmailEth = component "Notify To Email" "Notify to email for account." {
-                    customerFrontend -> this
-                }
             }
 
             utilityProviderService = container "Utility Provider Service" "Utility provider service for my crypto-bank system." {
-                loadUnpaidBillsJob = component "Load Unpaid Bills Job" "Periodically load unpaid bills for account."
+                loadUnpaidBillsJob = component "Load Unpaid Bills Job" "Periodically load unpaid bills for account." {
+                }
                 getUppaidBills = component "Get Unpaid Bills" "Get unpaid bills for account." {
                     customerFrontend -> this
                 }
@@ -125,12 +114,6 @@ workspace {
                     customerFrontend -> this
                 }
                 getPaymentsHistory = component "Get Payments History" "Get payments history for account." {
-                    customerFrontend -> this
-                }
-                notifyToSignalR = component "Notify To SignalR" "Notify to SignalR for account." {
-                    customerFrontend -> this
-                }
-                notifyToEmail = component "Notify To Email" "Notify to email for account." {
                     customerFrontend -> this
                 }
             }
@@ -141,6 +124,26 @@ workspace {
                 }
                 generateCryptoCurrencyInOutReport = component "Generate Crypto Currency In Out Report" "Generate crypto currency in out report." {
                     backOfficeFrontend -> this
+                }
+            }
+
+            notificationService = container "Notification Service" "Notification service for my crypto-bank system." {
+                createNotification = component "Send Notification" "Send notification for customer." {
+                    getDepositBtc -> this "Publish async notification" "" "Async"
+                    approveDepositBtcJob -> this "Publish async notification" "" "Async"
+                    approveWithdrawalBtcJob -> this "Publish async notification" "" "Async"
+                    getDepositEth -> this "Publish async notification" "" "Async"
+                    approveDepositEthJob -> this "Publish async notification" "" "Async"
+                    approveWithdrawalEthJob -> this "Publish async notification" "" "Async"
+                    loadUnpaidBillsJob -> this "Publish async notification" "" "Async"
+                }
+
+                sendEmailNotification = component "Send Email Notification" "Send email notification for customer." {
+                    createNotification -> this
+                }
+
+                sendSignalRNotification = component "Send SignalR Notification" "Send signalR notification for customer." {
+                    createNotification -> this
                 }
             }
         }
@@ -207,12 +210,21 @@ workspace {
             autoLayout
         }
 
+        component notificationService {
+            include *
+            autoLayout
+        }
+
         theme default
 
         styles {
             element "External" {
                 background #dddddd
                 color #000000
+            }
+
+            relationship "Async" {
+                style dotted
             }
         }
     }
