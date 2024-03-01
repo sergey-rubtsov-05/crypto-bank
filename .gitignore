@@ -10,3 +10,7 @@ riderModule.iml
 .idea/config/applicationhost.config
 
 .terraform/
+
+# Structurizr workspace
+.structurizr
+docs/structurizr/workspace.json
